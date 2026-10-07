@@ -1,5 +1,5 @@
 /* =====================================================
-   ระบบรถพุ่มพวงออนไลน์ - Full Complete CSS StyleSheet
+   ระบบรถพุ่มพวงออนไลน์ - Full Responsive CSS StyleSheet
 ===================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
@@ -31,7 +31,7 @@ body {
 }
 
 /* =====================================================
-   1. แถบ เมนู Navbar บนสุด (Header)
+   1. แถบ เมนู Navbar บนสุด (Header & Logo)
 ===================================================== */
 .navbar {
     background-color: var(--dark-bg);
@@ -43,7 +43,8 @@ body {
 }
 
 .nav-container {
-    max-width: 1100px;
+    max-width: 1400px;
+    width: 92%;
     margin: 0 auto;
     display: flex;
     justify-content: space-between;
@@ -57,7 +58,13 @@ body {
     text-decoration: none;
     display: flex;
     align-items: center;
-    gap: 8px;
+}
+
+.brand-logo {
+    height: 42px;
+    width: auto;
+    object-fit: contain;
+    filter: drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .nav-menu {
@@ -85,12 +92,13 @@ body {
 }
 
 /* =====================================================
-   2. Layout และ Container หลัก
+   2. Layout และ Container หลัก (ขยายตามขนาดหน้าจอ)
 ===================================================== */
 .container {
-    max-width: 1100px;
-    margin: 30px auto;
-    padding: 0 20px;
+    max-width: 1400px;
+    width: 92%;
+    margin: 25px auto;
+    padding: 0 15px;
 }
 
 .page-title {
@@ -109,7 +117,7 @@ body {
 }
 
 /* =====================================================
-   3. Hero Banner หน้าหลัก (ล็อกสเกลรูปภาพไม่ให้ดันกล่อง)
+   3. Hero Banner หน้าหลัก
 ===================================================== */
 .hero {
     background: linear-gradient(135deg, #10b981, #059669);
@@ -143,19 +151,20 @@ body {
 }
 
 .hero-image {
-    flex: 0 0 300px;
-    max-width: 300px;
+    flex: 0 0 280px;
+    max-width: 280px;
     display: flex;
     justify-content: flex-end;
 }
 
-.hero-image img, .hero img {
+.hero-image img {
     width: 100% !important;
-    max-width: 300px !important;
-    height: 180px !important;
-    object-fit: cover !important;
-    border-radius: 10px !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    max-width: 280px !important;
+    height: auto !important;
+    object-fit: contain !important;
+    filter: drop-shadow(0px 8px 16px rgba(0, 0, 0, 0.25)) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
     display: block !important;
 }
 
@@ -164,7 +173,7 @@ body {
 ===================================================== */
 .card-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 20px;
     margin-bottom: 25px;
 }
@@ -530,47 +539,65 @@ tr:last-child td {
     color: var(--primary);
     margin: 15px 0;
 }
+
 /* =====================================================
-   ปรับแต่ง Responsive Navbar สำหรับจอมือถือ (Max-width: 768px)
+   12. Responsive Design (ปรับตามขนาดมือถือ/คอมฯ)
 ===================================================== */
+@media (min-width: 1200px) {
+    .card-container {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
 @media (max-width: 768px) {
+    .container, .nav-container {
+        width: 95%;
+        padding: 0 10px;
+    }
+
     .navbar {
-        padding: 10px 12px;
+        padding: 10px 0;
     }
 
     .nav-container {
-        flex-wrap: wrap; /* อนุญาตให้องค์ประกอบตกลงมาอีกบรรทัดได้หากล้น */
+        flex-direction: column;
         gap: 10px;
     }
 
-    .brand {
-        font-size: 1.1rem;
-    }
-
     .brand-logo {
-        height: 32px; /* ปรับขนาดโลโก้ให้พอดีมือถือ */
+        height: 36px;
     }
 
     .nav-menu {
         width: 100%;
         display: flex;
-        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
         gap: 6px;
-        overflow-x: auto; /* ทำให้ปุ่มเมนูเลื่อนซ้าย-ขวาได้หากยาวเกินหน้าจอ */
-        white-space: nowrap;
-        padding-bottom: 4px;
-        -webkit-overflow-scrolling: touch;
     }
 
-    .nav-menu button, 
-    .nav-menu a {
+    .nav-menu button, .nav-menu a {
         padding: 6px 10px;
         font-size: 0.82rem;
-        flex-shrink: 0; /* ป้องกันไม่ให้ปุ่มโดนบีบจนข้อความเบี้ยว */
     }
 
-    .role-badge {
-        font-size: 0.75rem;
-        padding: 2px 6px;
+    .hero {
+        flex-direction: column;
+        text-align: center;
+        padding: 20px;
+    }
+
+    .hero-content h1 {
+        font-size: 1.5rem;
+    }
+
+    .hero-image {
+        max-width: 100%;
+        justify-content: center;
+    }
+
+    .card-container {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 12px;
     }
 }
