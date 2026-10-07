@@ -45,8 +45,9 @@ async function loadDataFromCloud() {
         ];
         orders = JSON.parse(localStorage.getItem("orders")) || [];
         users = JSON.parse(localStorage.getItem("users")) || [
-            { id: 1, name: "ผู้ขายตัวอย่าง", phone: "0800000000", username: "seller", password: "1234", role: "seller", points: 0 },
-            { id: 2, name: "ลูกค้าตัวอย่าง", phone: "0811111111", username: "customer", password: "1234", role: "customer", points: 50 }
+            { id: "1", name: "แอดมินระบบ", phone: "0800000000", username: "admin", password: "1234", role: "admin", points: 0, approved: true },
+            { id: "2", name: "ผู้ขายตัวอย่าง", phone: "0822222222", username: "seller", password: "1234", role: "seller", points: 0, approved: true },
+            { id: "3", name: "ลูกค้าตัวอย่าง", phone: "0811111111", username: "customer", password: "1234", role: "customer", points: 50, approved: true }
         ];
         initApp();
         return;
@@ -57,8 +58,9 @@ async function loadDataFromCloud() {
         const usersSnap = await db.collection("users").get();
         if (usersSnap.empty) {
             users = [
-                { id: "1", name: "ผู้ขายตัวอย่าง", phone: "0800000000", username: "seller", password: "1234", role: "seller", points: 0 },
-                { id: "2", name: "ลูกค้าตัวอย่าง", phone: "0811111111", username: "customer", password: "1234", role: "customer", points: 50 }
+                { id: "1", name: "แอดมินระบบ", phone: "0800000000", username: "admin", password: "1234", role: "admin", points: 0, approved: true },
+                { id: "2", name: "ผู้ขายตัวอย่าง", phone: "0822222222", username: "seller", password: "1234", role: "seller", points: 0, approved: true },
+                { id: "3", name: "ลูกค้าตัวอย่าง", phone: "0811111111", username: "customer", password: "1234", role: "customer", points: 50, approved: true }
             ];
             for (let u of users) { await db.collection("users").doc(String(u.id)).set(u); }
         } else {
@@ -97,7 +99,7 @@ async function loadDataFromCloud() {
 
         // ซิงค์ผู้ใช้ปัจจุบัน
         if (currentUser) {
-            let found = users.find(u => u.id == currentUser.id || u.username === currentUser.username);
+            let found = users.find(u => String(u.id) === String(currentUser.id) || u.username === currentUser.username);
             if (found) {
                 currentUser = found;
                 localStorage.setItem("currentUser", JSON.stringify(currentUser));
@@ -123,8 +125,18 @@ function saveData() {
 }
 
 /* =====================================================
-   3. ระบบจัดการหน้าเรนเดอร์และเมนู (Navigation & Navbar)
+   3. ระบบจัดการแถบยศ และ Navbar
 ===================================================== */
+
+function getRoleBadgeHTML(role) {
+    if (role === "admin") {
+        return `<span class="role-badge admin">👑 แอดมิน</span>`;
+    } else if (role === "seller") {
+        return `<span class="role-badge seller">👨‍💼 ผู้ขาย</span>`;
+    } else {
+        return `<span class="role-badge customer">👤 ลูกค้า</span>`;
+    }
+}
 
 function renderNavbar() {
     let nav = document.getElementById("navbarMenu");
@@ -133,8 +145,10 @@ function renderNavbar() {
     let html = "";
 
     if (currentUser) {
-        if (currentUser.role === "seller") {
-            html += `<button onclick="navigateTo('seller')">👨‍💼 ระบบผู้ขาย</button>`;
+        let role = currentUser.role || "customer";
+
+        if (role === "admin" || role === "seller") {
+            html += `<button onclick="navigateTo('seller')">👨‍💼 ระบบจัดการร้านค้า</button>`;
         } else {
             html += `
                 <button onclick="navigateTo('home')">หน้าหลัก</button>
@@ -145,9 +159,11 @@ function renderNavbar() {
         }
 
         let userPoints = currentUser.points || 0;
+        let badgeHtml = getRoleBadgeHTML(role);
+
         html += `
-            <span style="color: #10b981; font-size: 0.9rem; align-self: center; margin: 0 8px; font-weight: 500;">
-                👤 ${currentUser.name} ${currentUser.role === 'customer' ? `(⭐ ${userPoints} แต้ม)` : ''}
+            <span style="color: #ffffff; font-size: 0.9rem; align-self: center; margin: 0 8px; font-weight: 500; display: inline-flex; align-items: center;">
+                ${currentUser.name} ${badgeHtml} ${role === 'customer' ? `<span style="color: #f59e0b; margin-left: 6px;">(⭐ ${userPoints} แต้ม)</span>` : ''}
             </span>
             <button onclick="logout()" style="color: #ef4444;">ออกจากระบบ</button>
         `;
@@ -188,8 +204,8 @@ function navigateTo(pageName, param = null) {
 ===================================================== */
 
 function formatPrice(price) { return Number(price).toLocaleString("th-TH") + " บาท"; }
-function findTruck(truckId) { return trucks.find(truck => truck.id == truckId); }
-function findProduct(productId) { return products.find(product => product.id == productId); }
+function findTruck(truckId) { return trucks.find(truck => String(truck.id) === String(truckId)); }
+function findProduct(productId) { return products.find(product => String(product.id) === String(productId)); }
 function getToday() { return new Date().toISOString().split("T")[0]; }
 function getCurrentMonth() {
     let date = new Date();
@@ -203,7 +219,7 @@ function getNextOrderId() {
 function getReceiptNumber(orderId) { return "RC-" + String(orderId).padStart(5, "0"); }
 
 /* =====================================================
-   5. หน้าหลัก (Home Page - โครงสร้างตามรูปภาพ 100%)
+   5. หน้าหลัก (Home Page)
 ===================================================== */
 
 function showHome() {
@@ -307,7 +323,7 @@ function showHome() {
 }
 
 /* =====================================================
-   6. แสดงรถพุ่มพวง และค้นหา
+   6. แสดงรถพุ่มพวง และ ค้นหา
 ===================================================== */
 
 function showTrucks() {
@@ -358,7 +374,7 @@ function searchTrucks() {
 function showProducts(truckId) {
     let truck = findTruck(truckId);
     let content = document.getElementById("content");
-    let truckProducts = products.filter(product => product.truckId == truckId);
+    let truckProducts = products.filter(product => String(product.truckId) === String(truckId));
 
     let html = `
         <div class="page-title">
@@ -399,13 +415,13 @@ function addToCart(productId) {
 
     if (cart.length > 0) {
         let firstProduct = findProduct(cart[0].productId);
-        if (firstProduct && firstProduct.truckId != product.truckId) {
+        if (firstProduct && String(firstProduct.truckId) !== String(product.truckId)) {
             alert("สามารถสั่งสินค้าจากรถพุ่มพวงได้ครั้งละ 1 คัน");
             return;
         }
     }
 
-    let cartItem = cart.find(item => item.productId == productId);
+    let cartItem = cart.find(item => String(item.productId) === String(productId));
 
     if (cartItem) {
         if (cartItem.quantity < product.quantity) {
@@ -476,7 +492,7 @@ function showCart() {
 }
 
 function increaseCart(productId) {
-    let item = cart.find(item => item.productId == productId);
+    let item = cart.find(item => String(item.productId) === String(productId));
     let product = findProduct(productId);
     if (item && product && item.quantity < product.quantity) {
         item.quantity++;
@@ -488,7 +504,7 @@ function increaseCart(productId) {
 }
 
 function decreaseCart(productId) {
-    let item = cart.find(item => item.productId == productId);
+    let item = cart.find(item => String(item.productId) === String(productId));
     if (!item) return;
 
     item.quantity--;
@@ -502,19 +518,22 @@ function decreaseCart(productId) {
 }
 
 function removeFromCart(productId) {
-    cart = cart.filter(item => item.productId != productId);
+    cart = cart.filter(item => String(item.productId) !== String(productId));
     saveData();
     showCart();
 }
 
 /* =====================================================
-   9. ชำระเงิน และระบบแต้มส่วนลด (Checkout)
+   9. ชำระเงิน (Checkout)
 ===================================================== */
 
 function checkout() {
     if (cart.length === 0) { alert("ไม่มีสินค้าในตะกร้า"); return; }
     if (!currentUser) { alert("กรุณาสมัครสมาชิกหรือเข้าสู่ระบบก่อนสั่งซื้อ"); showLogin(); return; }
-    if (currentUser.role !== "customer") { alert("บัญชีผู้ขายไม่สามารถสั่งซื้อสินค้าได้"); return; }
+    if (currentUser.role === "seller" || currentUser.role === "admin") {
+        alert("บัญชีผู้ขาย/แอดมิน กรุณาสลับเป็นบัญชีลูกค้าก่อนสั่งซื้อสินค้า");
+        return;
+    }
 
     let subtotal = cart.reduce((sum, item) => {
         let p = findProduct(item.productId);
@@ -651,7 +670,7 @@ function placeOrder(subtotal) {
             } else {
                 if (pointsUsed > 0) {
                     currentUser.points = (currentUser.points || 0) - pointsUsed;
-                    let userInList = users.find(u => u.id == currentUser.id);
+                    let userInList = users.find(u => String(u.id) === String(currentUser.id));
                     if (userInList) userInList.points = currentUser.points;
                     localStorage.setItem("currentUser", JSON.stringify(currentUser));
                 }
@@ -678,7 +697,7 @@ function placeOrder(subtotal) {
 }
 
 /* =====================================================
-   10. ระบบสมาชิก (Register & Login - รองรับ Enter)
+   10. ระบบสมาชิก (Register & Login + Role & Approval)
 ===================================================== */
 
 function showRegister() {
@@ -702,10 +721,11 @@ function showRegister() {
                 <input id="registerPhone" placeholder="กรอกเบอร์โทรศัพท์" onkeyup="handleRegisterKey(event)">
             </div>
             <div class="form-group">
-                <label>ประเภทสมาชิก</label>
+                <label>ประเภทสมาชิก (ยศ)</label>
                 <select id="registerRole" onkeyup="handleRegisterKey(event)">
-                    <option value="customer">ลูกค้า</option>
-                    <option value="seller">ผู้ขาย</option>
+                    <option value="customer">👤 ลูกค้า</option>
+                    <option value="seller">👨‍💼 ผู้ขาย (ต้องรอการอนุมัติ)</option>
+                    <option value="admin">👑 แอดมิน / เจ้าของระบบ</option>
                 </select>
             </div>
             <button class="btn" onclick="registerUser()">สมัครสมาชิก</button>
@@ -734,13 +754,16 @@ async function registerUser() {
     let existingUser = users.find(u => u.username.toLowerCase() === username.toLowerCase());
     if (existingUser) { alert("Username นี้ถูกใช้ไปแล้ว"); return; }
 
+    let isApproved = role === "seller" ? false : true;
+
     let newUser = {
         name: name || username,
         username: username,
         password: password,
         phone: phone,
         role: role,
-        points: 0
+        points: 0,
+        approved: isApproved
     };
 
     try {
@@ -753,7 +776,13 @@ async function registerUser() {
 
         users.push(newUser);
         saveData();
-        alert("สมัครสมาชิกสำเร็จ!");
+
+        if (role === "seller") {
+            alert("สมัครสมาชิกผู้ขายสำเร็จ! บัญชีของคุณกำลังรอการอนุมัติจากแอดมินก่อนเริ่มใช้งาน");
+        } else {
+            alert("สมัครสมาชิกสำเร็จ!");
+        }
+
         closeModal();
         setTimeout(showLogin, 100);
     } catch (err) {
@@ -792,6 +821,11 @@ function login() {
 
     if (!user) { alert("Username หรือ Password ไม่ถูกต้อง"); return; }
 
+    if (user.role === "seller" && user.approved === false) {
+        alert("🔒 บัญชีผู้ขายของคุณอยู่ระหว่างรอการอนุมัติจากแอดมิน กรุณาติดต่อผู้ดูแลระบบเพื่อเปิดใช้งาน");
+        return;
+    }
+
     currentUser = user;
     localStorage.setItem("currentUser", JSON.stringify(currentUser));
     
@@ -799,7 +833,7 @@ function login() {
     renderNavbar();
     alert(`ยินดีต้อนรับคุณ ${currentUser.name}`);
 
-    if (user.role === "seller") { navigateTo('seller'); } 
+    if (user.role === "seller" || user.role === "admin") { navigateTo('seller'); } 
     else { navigateTo('home'); }
 }
 
@@ -866,10 +900,9 @@ function renderStepperHTML(currentStatus) {
 
 function showOrders() {
     if (!currentUser) { alert("กรุณาเข้าสู่ระบบก่อน"); showLogin(); return; }
-    if (currentUser.role !== "customer") { alert("หน้านี้สำหรับลูกค้า"); return; }
 
     let content = document.getElementById("content");
-    let myOrders = orders.filter(order => order.customerId == currentUser.id);
+    let myOrders = orders.filter(order => String(order.customerId) === String(currentUser.id));
 
     let html = `
         <div class="page-title">
@@ -928,12 +961,12 @@ function showOrders() {
 }
 
 /* =====================================================
-   12. ระบบผู้ขาย (Seller System)
+   12. แดชบอร์ดผู้ขาย & แอดมิน (Seller & Admin System)
 ===================================================== */
 
 function showSeller() {
-    if (!currentUser || currentUser.role !== "seller") {
-        alert("กรุณาเข้าสู่ระบบผู้ขาย");
+    if (!currentUser || (currentUser.role !== "seller" && currentUser.role !== "admin")) {
+        alert("กรุณาเข้าสู่ระบบด้วยบัญชีผู้ขายหรือแอดมิน");
         showLogin();
         return;
     }
@@ -947,13 +980,15 @@ function showSeller() {
     content.innerHTML = `
         <div class="page-title" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-color); padding-bottom: 15px;">
             <div>
-                <h1 style="font-size: 1.8rem; color: var(--dark);">👨‍💼 แดชบอร์ดผู้ขาย</h1>
-                <p style="color: #64748b;">ยินดีต้อนรับคุณ <strong>${currentUser.name}</strong></p>
+                <h1 style="font-size: 1.8rem; color: var(--dark);">👨‍💼 แดชบอร์ดจัดการร้านค้า</h1>
+                <p style="color: #64748b;">ยินดีต้อนรับคุณ <strong>${currentUser.name}</strong> ${getRoleBadgeHTML(currentUser.role)}</p>
             </div>
             <span class="badge" style="background: var(--primary-light); color: var(--primary-hover); font-size: 0.9rem; padding: 6px 14px; border-radius: 20px;">
                 🟢 พร้อมให้บริการ
             </span>
         </div>
+
+        ${renderPendingSellersHTML()}
 
         <div class="report-container" style="margin-top: 20px;">
             <div class="report-card" style="border-left: 5px solid #10b981;">
@@ -1037,6 +1072,68 @@ function showSeller() {
     `;
 }
 
+function renderPendingSellersHTML() {
+    let pendingSellers = users.filter(u => u.role === "seller" && u.approved === false);
+    if (pendingSellers.length === 0) return '';
+
+    let html = `
+        <div class="card" style="margin-top: 25px; border-left: 5px solid #f59e0b; background: #fffbe0;">
+            <h3 style="color: #b45309; margin-bottom: 10px;">⏳ บัญชีผู้ขายรอการอนุมัติ (${pendingSellers.length} รายการ)</h3>
+            <div class="table-box">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ชื่อ-นามสกุล</th>
+                            <th>Username</th>
+                            <th>เบอร์โทรศัพท์</th>
+                            <th>จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+    `;
+
+    pendingSellers.forEach(u => {
+        html += `
+            <tr>
+                <td><strong>${u.name}</strong></td>
+                <td>${u.username}</td>
+                <td>${u.phone}</td>
+                <td>
+                    <button class="btn btn-success" style="padding: 4px 10px; font-size: 0.85rem;" onclick="approveSeller('${u.id}')">
+                        ✅ อนุมัติสิทธิ์ผู้ขาย
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+
+    html += `</tbody></table></div></div>`;
+    return html;
+}
+
+async function approveSeller(userId) {
+    let user = users.find(u => String(u.id) === String(userId));
+    if (!user) return;
+
+    if (!confirm(`ยืนยันการอนุมัติสิทธิ์ผู้ขายให้คุณ "${user.name}" ใช่หรือไม่?`)) return;
+
+    user.approved = true;
+
+    try {
+        if (db) {
+            await db.collection("users").doc(String(user.id)).update({
+                approved: true
+            });
+        }
+    } catch (e) {
+        console.error(e);
+    }
+
+    saveData();
+    alert(`อนุมัติผู้ขายคุณ ${user.name} เรียบร้อยแล้ว!`);
+    navigateTo('seller');
+}
+
 function createRecentOrdersRows() {
     if (orders.length === 0) {
         return `<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 20px;">ยังไม่มีรายการสั่งซื้อเข้ามาในระบบ</td></tr>`;
@@ -1058,10 +1155,14 @@ function createRecentOrdersRows() {
     `).join("");
 }
 
+/* =====================================================
+   13. จัดการรถพุ่มพวง & สินค้า
+===================================================== */
+
 function manageTrucks() {
     let html = `
         <div style="margin-bottom: 15px;">
-            <button class="btn btn-blue" style="width: auto; padding: 6px 14px;" onclick="navigateTo('seller')">← กลับหน้าระบบผู้ขาย</button>
+            <button class="btn btn-blue" style="width: auto; padding: 6px 14px;" onclick="navigateTo('seller')">← กลับหน้าระบบร้านค้า</button>
         </div>
         <h2>🚚 จัดการรถพุ่มพวง</h2>
         <button class="btn" onclick="showAddTruck()">+ เพิ่มรถ</button>
@@ -1173,8 +1274,8 @@ async function deleteTruck(truckId) {
 
     if (db) { await db.collection("trucks").doc(String(truckId)).delete(); }
 
-    trucks = trucks.filter(truck => truck.id != truckId);
-    products = products.filter(product => product.truckId != truckId);
+    trucks = trucks.filter(truck => String(truck.id) !== String(truckId));
+    products = products.filter(product => String(product.truckId) !== String(truckId));
 
     saveData();
     manageTrucks();
@@ -1183,7 +1284,7 @@ async function deleteTruck(truckId) {
 function manageProducts() {
     let html = `
         <div style="margin-bottom: 15px;">
-            <button class="btn btn-blue" style="width: auto; padding: 6px 14px;" onclick="navigateTo('seller')">← กลับหน้าระบบผู้ขาย</button>
+            <button class="btn btn-blue" style="width: auto; padding: 6px 14px;" onclick="navigateTo('seller')">← กลับหน้าระบบร้านค้า</button>
         </div>
         <h2>🥬 จัดการสินค้า</h2>
         <button class="btn" onclick="showAddProduct()">+ เพิ่มสินค้า</button>
@@ -1250,7 +1351,7 @@ async function saveProduct() {
 
     if (!name || price <= 0 || quantity <= 0) { alert("กรุณากรอกข้อมูลให้ครบถ้วน"); return; }
 
-    let existingProduct = products.find(p => p.truckId == truckId && p.name.toLowerCase() === name.toLowerCase());
+    let existingProduct = products.find(p => String(p.truckId) === String(truckId) && p.name.toLowerCase() === name.toLowerCase());
 
     if (existingProduct) {
         existingProduct.quantity += quantity;
@@ -1295,7 +1396,7 @@ function showEditProduct(productId) {
     if (!product) return;
 
     let options = trucks.map(t => 
-        `<option value="${t.id}" ${t.id == product.truckId ? "selected" : ""}>${t.name}</option>`
+        `<option value="${t.id}" ${String(t.id) === String(product.truckId) ? "selected" : ""}>${t.name}</option>`
     ).join("");
 
     let html = `
@@ -1342,18 +1443,22 @@ async function deleteProduct(productId) {
 
     if (db) { await db.collection("products").doc(String(productId)).delete(); }
 
-    products = products.filter(p => p.id != productId);
-    cart = cart.filter(c => c.productId != productId);
+    products = products.filter(p => String(p.id) !== String(productId));
+    cart = cart.filter(c => String(c.productId) !== String(productId));
 
     saveData();
     manageProducts();
 }
 
+/* =====================================================
+   14. จัดการออเดอร์ (Confirm & Reject Fix)
+===================================================== */
+
 function manageOrders() {
     let content = document.getElementById("content");
     let html = `
         <div style="margin-bottom: 15px;">
-            <button class="btn btn-blue" style="width: auto; padding: 6px 14px;" onclick="navigateTo('seller')">← กลับหน้าระบบผู้ขาย</button>
+            <button class="btn btn-blue" style="width: auto; padding: 6px 14px;" onclick="navigateTo('seller')">← กลับหน้าระบบร้านค้า</button>
         </div>
         <div class="page-title">
             <h1>📦 รายการออเดอร์ทั้งหมด</h1>
@@ -1376,7 +1481,7 @@ function manageOrders() {
                 <p><strong>ที่อยู่จัดส่ง:</strong> ${order.address || '-'}</p>
                 ${order.discount ? `<p style="color: #dc2626;"><strong>ส่วนลดแต้ม:</strong> -${order.discount} บาท</p>` : ''}
                 <p><strong>ยอดเงินสุทธิ:</strong> <strong>${formatPrice(order.total)}</strong></p>
-                <p><strong>สถานะการชำระเงิน:</strong> <span class="badge">${order.paymentStatus}</span></p>
+                <p><strong>สถานะการชำระเงิน:</strong> <span class="badge" style="background: ${order.paymentStatus === 'ชำระเงินแล้ว' ? '#d1fae5' : '#fef3c7'}; color: ${order.paymentStatus === 'ชำระเงินแล้ว' ? '#059669' : '#d97706'};">${order.paymentStatus}</span></p>
 
                 <div style="margin: 10px 0;">
                     ${order.slipImage ? `
@@ -1427,7 +1532,7 @@ function manageOrders() {
 }
 
 function viewSlip(orderId) {
-    let order = orders.find(o => o.id == orderId);
+    let order = orders.find(o => String(o.id) === String(orderId));
     if (!order || !order.slipImage) return;
 
     let html = `
@@ -1446,8 +1551,8 @@ function viewSlip(orderId) {
 }
 
 async function confirmPayment(orderId) {
-    let order = orders.find(o => o.id == orderId);
-    if (!order) return;
+    let order = orders.find(o => String(o.id) === String(orderId));
+    if (!order) { alert("ไม่พบข้อมูลออเดอร์นี้"); return; }
 
     if (!confirm(`ยืนยันการชำระเงินสำหรับออเดอร์ #${orderId} ใช่หรือไม่?`)) return;
 
@@ -1456,23 +1561,32 @@ async function confirmPayment(orderId) {
     order.receiptNumber = getReceiptNumber(order.id);
 
     let earnedPoints = Math.floor(order.total / 100);
-    let customer = users.find(u => u.id == order.customerId);
+    let customer = users.find(u => String(u.id) === String(order.customerId));
     
     if (customer) {
         customer.points = (customer.points || 0) + earnedPoints;
-        if (currentUser && currentUser.id == customer.id) {
+        if (currentUser && String(currentUser.id) === String(customer.id)) {
             currentUser.points = customer.points;
             localStorage.setItem("currentUser", JSON.stringify(currentUser));
         }
-        if (db) { await db.collection("users").doc(String(customer.id)).update({ points: customer.points }); }
     }
 
-    if (db) {
-        await db.collection("orders").doc(String(orderId)).update({
-            paymentStatus: order.paymentStatus,
-            status: order.status,
-            receiptNumber: order.receiptNumber
-        });
+    try {
+        if (db) {
+            await db.collection("orders").doc(String(order.id)).update({
+                paymentStatus: order.paymentStatus,
+                status: order.status,
+                receiptNumber: order.receiptNumber
+            });
+
+            if (customer) {
+                await db.collection("users").doc(String(customer.id)).update({
+                    points: customer.points
+                });
+            }
+        }
+    } catch (e) {
+        console.error("Firebase Update Error:", e);
     }
 
     saveData();
@@ -1482,16 +1596,16 @@ async function confirmPayment(orderId) {
 }
 
 async function rejectPayment(orderId) {
-    let order = orders.find(o => o.id == orderId);
+    let order = orders.find(o => String(o.id) === String(orderId));
     if (!order) return;
 
     if (!confirm(`ต้องการปฏิเสธสลิปการโอนเงินของออเดอร์ #${orderId} ใช่หรือไม่?`)) return;
 
     if (order.discount && order.discount > 0) {
-        let customer = users.find(u => u.id == order.customerId);
+        let customer = users.find(u => String(u.id) === String(order.customerId));
         if (customer) {
             customer.points = (customer.points || 0) + order.discount;
-            if (currentUser && currentUser.id == customer.id) {
+            if (currentUser && String(currentUser.id) === String(customer.id)) {
                 currentUser.points = customer.points;
                 localStorage.setItem("currentUser", JSON.stringify(currentUser));
             }
@@ -1512,70 +1626,47 @@ async function rejectPayment(orderId) {
     order.paymentStatus = "ชำระเงินไม่ถูกต้อง";
     order.status = "ยกเลิกออเดอร์";
 
-    if (db) {
-        await db.collection("orders").doc(String(orderId)).update({
-            paymentStatus: order.paymentStatus,
-            status: order.status
-        });
-    }
+    try {
+        if (db) {
+            await db.collection("orders").doc(String(order.id)).update({
+                paymentStatus: order.paymentStatus,
+                status: order.status
+            });
+        }
+    } catch (e) { console.error(e); }
 
     saveData();
     renderNavbar();
-    alert(`ปฏิเสธการชำระเงินแล้ว (ระบบได้ทำการคืนแต้ม ${order.discount || 0} แต้ม และสต็อกสินค้าให้ลูกค้าเรียบร้อยแล้ว)`);
+    alert(`ปฏิเสธการชำระเงินแล้ว`);
     manageOrders();
 }
 
 async function updateOrderStatus(orderId, newStatus) {
-    let order = orders.find(o => o.id == orderId);
+    let order = orders.find(o => String(o.id) === String(orderId));
     if (!order) return;
-
-    if (newStatus === "ยกเลิกออเดอร์" && order.status !== "ยกเลิกออเดอร์") {
-        if (order.discount && order.discount > 0) {
-            let customer = users.find(u => u.id == order.customerId);
-            if (customer) {
-                customer.points = (customer.points || 0) + order.discount;
-                if (currentUser && currentUser.id == customer.id) {
-                    currentUser.points = customer.points;
-                    localStorage.setItem("currentUser", JSON.stringify(currentUser));
-                }
-                if (db) { await db.collection("users").doc(String(customer.id)).update({ points: customer.points }); }
-            }
-        }
-
-        if (order.items && order.items.length > 0) {
-            order.items.forEach(async item => {
-                let product = findProduct(item.productId);
-                if (product) {
-                    product.quantity += item.quantity;
-                    if (db) { await db.collection("products").doc(String(product.id)).update({ quantity: product.quantity }); }
-                }
-            });
-        }
-
-        order.paymentStatus = "ชำระเงินไม่ถูกต้อง";
-    }
 
     order.status = newStatus;
 
-    if (db) {
-        await db.collection("orders").doc(String(orderId)).update({
-            status: order.status,
-            paymentStatus: order.paymentStatus
-        });
-    }
+    try {
+        if (db) {
+            await db.collection("orders").doc(String(order.id)).update({
+                status: order.status
+            });
+        }
+    } catch (e) { console.error(e); }
 
     saveData();
     renderNavbar();
-    alert(`อัปเดตสถานะออเดอร์ #${orderId} เป็น "${newStatus}" เรียบร้อยแล้ว`);
+    alert(`อัปเดตสถานะออเดอร์เป็น "${newStatus}" เรียบร้อยแล้ว`);
     manageOrders();
 }
 
 /* =====================================================
-   13. ใบเสร็จรับเงิน & รายงานยอดขาย
+   15. ใบเสร็จรับเงิน & รายงานยอดขาย
 ===================================================== */
 
 function showReceipt(orderId) {
-    let order = orders.find(o => o.id == orderId);
+    let order = orders.find(o => String(o.id) === String(orderId));
     if (!order) return;
 
     let truck = findTruck(order.truckId);
@@ -1640,7 +1731,7 @@ function showSalesReport() {
     let content = document.getElementById("content");
     content.innerHTML = `
         <div style="margin-bottom: 15px;">
-            <button class="btn btn-blue" style="width: auto; padding: 6px 14px;" onclick="navigateTo('seller')">← กลับหน้าระบบผู้ขาย</button>
+            <button class="btn btn-blue" style="width: auto; padding: 6px 14px;" onclick="navigateTo('seller')">← กลับหน้าระบบร้านค้า</button>
         </div>
         <div class="page-title">
             <h1>📊 รายงานยอดขาย</h1>
@@ -1697,7 +1788,7 @@ function createSalesRows(orderList) {
 }
 
 /* =====================================================
-   14. ควบคุม Modal
+   16. ควบคุม Modal & เริ่มต้นระบบ
 ===================================================== */
 
 function openModal(html) {
@@ -1712,10 +1803,6 @@ function closeModal() {
     if (modal) modal.style.display = "none";
 }
 
-/* =====================================================
-   15. เริ่มต้นระบบ (Initialize App)
-===================================================== */
-
 function initApp() {
     renderNavbar();
     let savedPage = JSON.parse(localStorage.getItem("currentPage"));
@@ -1727,7 +1814,7 @@ function initApp() {
     }
 }
 
-// โหลดข้อมูลจาก Firebase
+// โหลดข้อมูลเมื่อเปิดหน้าเว็บ
 window.onload = function() {
     loadDataFromCloud();
 };
