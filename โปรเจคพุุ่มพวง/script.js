@@ -2,14 +2,15 @@
    ระบบจำลองรถพุ่มพวงออนไลน์ (Rot Phum Phuang) - Full Version
 ===================================================== */
 
-// 1. ตั้งค่า Firebase Configuration (นำค่าจาก Firebase Console ของคุณมาใส่ตรงนี้)
+// 1. ตั้งค่า Firebase Configuration (เชื่อมต่อกับโปรเจกต์ phomphung-f25c5)
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyBjEzbFuCngT-u_hvalTn0Lw-ufILi7qYc",
+  authDomain: "phomphung-f25c5.firebaseapp.com",
+  projectId: "phomphung-f25c5",
+  storageBucket: "phomphung-f25c5.firebasestorage.app",
+  messagingSenderId: "6978226057",
+  appId: "1:6978226057:web:ab86d3de879a56ff464358",
+  measurementId: "G-J24X9W5K4S"
 };
 
 // 2. เริ่มต้นเชื่อมต่อ Firebase
@@ -38,7 +39,7 @@ async function loadDataFromCloud() {
     }
 
     try {
-        // ดึงผู้ใช้งาน
+        // ดึงข้อมูลผู้ใช้งาน
         const usersSnap = await db.collection("users").get();
         users = usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
@@ -51,15 +52,15 @@ async function loadDataFromCloud() {
             }
         }
 
-        // ดึงรถพุ่มพวง
+        // ดึงข้อมูลรถพุ่มพวง
         const trucksSnap = await db.collection("trucks").get();
         trucks = trucksSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-        // ดึงสินค้า
+        // ดึงข้อมูลสินค้า
         const productsSnap = await db.collection("products").get();
         products = productsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-        // ดึงออเดอร์
+        // ดึงข้อมูลออเดอร์
         const ordersSnap = await db.collection("orders").get();
         orders = ordersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
@@ -124,7 +125,7 @@ function closeModal() {
 }
 
 // ==========================================
-// 5. ระบบเข้าสู่ระบบ & สมัครสมาชิก (รองรับ Enter)
+// 5. ระบบเข้าสู่ระบบ & สมัครสมาชิก (กด Enter ได้)
 // ==========================================
 function showLogin() {
     let html = `
@@ -523,7 +524,7 @@ function placeOrder(subtotal) {
 }
 
 // ==========================================
-// 7. หน้าติดตามออเดอร์สำหรับลูกค้า & ปรับแต่ง Stepper
+// 7. หน้าติดตามออเดอร์สำหรับลูกค้า & Stepper
 // ==========================================
 function renderOrders() {
     let content = document.getElementById("content");
@@ -616,6 +617,38 @@ function manageTrucks() {
     document.getElementById("content").innerHTML = html;
 }
 
+function showAddTruck() {
+    let html = `
+        <h2>🚚 เพิ่มรถพุ่มพวงใหม่</h2>
+        <div class="form-group"><label>ชื่อรถ</label><input id="truckName" placeholder="เช่น รถพุ่มพวง A"></div>
+        <div class="form-group"><label>ทะเบียนรถ</label><input id="truckLicense" placeholder="เช่น กข 1234"></div>
+        <div class="form-group"><label>พื้นที่ให้บริการ</label><input id="truckLocation" placeholder="เช่น ตลาดหน้าหมู่บ้าน"></div>
+        <button class="btn" onclick="saveTruck()">💾 บันทึกรถ</button>
+    `;
+    openModal(html);
+}
+
+async function saveTruck() {
+    let name = document.getElementById("truckName").value.trim();
+    let license = document.getElementById("truckLicense").value.trim();
+    let location = document.getElementById("truckLocation").value.trim();
+
+    if (!name || !license) { alert("กรุณากรอกชื่อรถและทะเบียน"); return; }
+
+    let newTruck = { name: name, license: license, location: location };
+    if (db) {
+        let docRef = await db.collection("trucks").add(newTruck);
+        newTruck.id = docRef.id;
+    } else {
+        newTruck.id = "t_" + Date.now();
+    }
+    trucks.push(newTruck);
+
+    closeModal();
+    manageTrucks();
+    alert("เพิ่มรถพุ่มพวงเรียบร้อยแล้ว");
+}
+
 function showEditTruck(tId) {
     let truck = findTruck(tId);
     if (!truck) return;
@@ -643,6 +676,16 @@ async function saveEditTruck(tId) {
     closeModal();
     manageTrucks();
     alert("อัปเดตข้อมูลรถเรียบร้อยแล้ว");
+}
+
+async function deleteTruck(tId) {
+    if (!confirm("ต้องการลบรถคันนี้ใช่หรือไม่?")) return;
+
+    if (db) await db.collection("trucks").doc(String(tId)).delete();
+    trucks = trucks.filter(t => t.id != tId);
+
+    manageTrucks();
+    alert("ลบรถพุ่มพวงเรียบร้อยแล้ว");
 }
 
 // จัดการสินค้า + ป้องกันสินค้าซ้ำซ้อน
@@ -763,7 +806,6 @@ async function confirmPayment(orderId) {
     o.paymentStatus = "ชำระเงินแล้ว";
     o.status = "กำลังเตรียมสินค้า";
 
-    // คำนวณแต้มสะสมให้ลูกค้า (100 บาท = 1 แต้ม)
     let earnedPoints = Math.floor(o.total / 100);
     let customer = users.find(u => u.id == o.customerId);
     if (customer && earnedPoints > 0) {
@@ -783,7 +825,6 @@ async function rejectPayment(orderId) {
 
     if (!confirm("ต้องการปฏิเสธสลิปใช่หรือไม่? ระบบจะทำการคืนแต้มส่วนลดและสต็อกสินค้าให้ลูกค้าทันที")) return;
 
-    // คืนแต้มให้ลูกค้า
     if (o.discount && o.discount > 0) {
         let customer = users.find(u => u.id == o.customerId);
         if (customer) {
@@ -792,7 +833,6 @@ async function rejectPayment(orderId) {
         }
     }
 
-    // คืนสต็อกสินค้า
     for (let item of o.items) {
         let product = findProduct(item.productId);
         if (product) {
@@ -810,7 +850,7 @@ async function rejectPayment(orderId) {
     manageOrders();
 }
 
-// เริ่มต้นโหลดระบบเมื่อหน้าเว็บพร้อม
+// เริ่มต้นโหลดระบบเมื่อเปิดหน้าเว็บ
 window.onload = function() {
     loadDataFromCloud();
 };
