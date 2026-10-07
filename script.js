@@ -1,6 +1,14 @@
 /* =====================================================
    รถพุ่มพวง JavaScript (Full System)
 ===================================================== */
+const firebaseConfig = {
+  apiKey: "AIzaSy...",
+  authDomain: "rot-phum-phuang.firebaseapp.com",
+  projectId: "rot-phum-phuang",
+  storageBucket: "rot-phum-phuang.appspot.com",
+  messagingSenderId: "...",
+  appId: "..."
+};
 
 /* =====================================================
    1. ข้อมูลเริ่มต้น (Initial Data)
