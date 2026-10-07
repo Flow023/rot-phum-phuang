@@ -1,8 +1,8 @@
 /* =====================================================
-   รถพุ่มพวง JavaScript (Full System) - Firebase Edition
+   รถพุ่มพวง JavaScript (Full System + Firebase Firestore)
 ===================================================== */
 
-// 1. ตั้งค่า Firebase Configuration (เชื่อมต่อ phomphung-f25c5)
+// 1. ตั้งค่า Firebase Configuration (phomphung-f25c5)
 const firebaseConfig = {
   apiKey: "AIzaSyBjEzbFuCngT-u_hvalTn0Lw-ufILi7qYc",
   authDomain: "phomphung-f25c5.firebaseapp.com",
@@ -20,7 +20,7 @@ if (typeof firebase !== 'undefined' && !firebase.apps.length) {
 const db = typeof firebase !== 'undefined' ? firebase.firestore() : null;
 
 /* =====================================================
-   1. ข้อมูลเริ่มต้น (Initial Data / Cloud State)
+   1. ข้อมูลเริ่มต้น (Cloud & Memory State)
 ===================================================== */
 
 let trucks = [];
@@ -33,7 +33,6 @@ let cart = JSON.parse(localStorage.getItem("cart")) || [];
 // ดึงข้อมูลจาก Cloud Firestore
 async function loadDataFromCloud() {
     if (!db) {
-        // Fallback ใช้ LocalStorage หากไม่ได้ต่อ Firebase
         trucks = JSON.parse(localStorage.getItem("trucks")) || [
             { id: 1, name: "รถพุ่มพวง A", license: "กข 1234", location: "ตลาดหน้าหมู่บ้าน", description: "ขายผักสดและของใช้ในบ้าน" },
             { id: 2, name: "รถพุ่มพวง B", license: "ขค 5678", location: "ชุมชนเมือง", description: "ขายเนื้อ หมู ไก่ และอาหารสด" }
@@ -54,10 +53,9 @@ async function loadDataFromCloud() {
     }
 
     try {
-        // 1. ดึงข้อมูลผู้ใช้
+        // ดึงข้อมูลผู้ใช้
         const usersSnap = await db.collection("users").get();
         if (usersSnap.empty) {
-            // สร้างข้อมูลตั้งต้นถ้ายังไม่มี
             users = [
                 { id: "1", name: "ผู้ขายตัวอย่าง", phone: "0800000000", username: "seller", password: "1234", role: "seller", points: 0 },
                 { id: "2", name: "ลูกค้าตัวอย่าง", phone: "0811111111", username: "customer", password: "1234", role: "customer", points: 50 }
@@ -67,7 +65,7 @@ async function loadDataFromCloud() {
             users = usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         }
 
-        // 2. ดึงข้อมูลรถพุ่มพวง
+        // ดึงข้อมูลรถพุ่มพวง
         const trucksSnap = await db.collection("trucks").get();
         if (trucksSnap.empty) {
             trucks = [
@@ -79,7 +77,7 @@ async function loadDataFromCloud() {
             trucks = trucksSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         }
 
-        // 3. ดึงข้อมูลสินค้า
+        // ดึงข้อมูลสินค้า
         const productsSnap = await db.collection("products").get();
         if (productsSnap.empty) {
             products = [
@@ -93,11 +91,11 @@ async function loadDataFromCloud() {
             products = productsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         }
 
-        // 4. ดึงข้อมูลออเดอร์
+        // ดึงข้อมูลออเดอร์
         const ordersSnap = await db.collection("orders").get();
         orders = ordersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-        // ซิงค์ currentUser ล่าสุด
+        // ซิงค์ผู้ใช้ปัจจุบัน
         if (currentUser) {
             let found = users.find(u => u.id == currentUser.id || u.username === currentUser.username);
             if (found) {
@@ -106,14 +104,14 @@ async function loadDataFromCloud() {
             }
         }
     } catch (e) {
-        console.error("Firebase Error:", e);
+        console.error("Firebase Sync Error:", e);
     }
 
     initApp();
 }
 
 /* =====================================================
-   2. ระบบบันทึกข้อมูล (Save Data & Cloud Sync)
+   2. ระบบบันทึกข้อมูล (Save Data)
 ===================================================== */
 
 function saveData() {
@@ -205,7 +203,7 @@ function getNextOrderId() {
 function getReceiptNumber(orderId) { return "RC-" + String(orderId).padStart(5, "0"); }
 
 /* =====================================================
-   5. หน้าหลัก (Home Page)
+   5. หน้าหลัก (Home Page - โครงสร้างตามรูปภาพ 100%)
 ===================================================== */
 
 function showHome() {
@@ -634,7 +632,6 @@ function placeOrder(subtotal) {
         };
 
         try {
-            // 🌟 บันทึกลง Cloud Firestore
             if (db) {
                 let docRef = await db.collection("orders").add(order);
                 order.id = docRef.id;
@@ -681,7 +678,7 @@ function placeOrder(subtotal) {
 }
 
 /* =====================================================
-   10. ระบบสมาชิก (Register & Login)
+   10. ระบบสมาชิก (Register & Login - รองรับ Enter)
 ===================================================== */
 
 function showRegister() {
@@ -1730,7 +1727,7 @@ function initApp() {
     }
 }
 
-// เริ่มโหลดข้อมูลจาก Firebase เป็นอันดับแรก
+// โหลดข้อมูลจาก Firebase
 window.onload = function() {
     loadDataFromCloud();
 };
