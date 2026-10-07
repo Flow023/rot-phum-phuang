@@ -5,30 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>รถพุ่มพวง - ตลาดเคลื่อนที่ออนไลน์</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <!-- แถบ Navbar ด้านบนสุดแบบในรูป -->
+    <!-- แถบ Navbar ด้านบนสุด -->
     <nav class="navbar">
         <div class="nav-container">
             <a href="#" class="brand" onclick="navigateTo('home')">
+                🚚 รถพุ่มพวง
             </a>
-            <div id="navbarMenu" class="nav-menu">
-                <!-- เมนูจะเรนเดอร์ผ่าน renderNavbar() -->
-            </div>
+            <div id="navbarMenu" class="nav-menu"></div>
         </div>
     </nav>
 
-    <!-- พื้นที่แสดงเนื้อหาหลัก -->
+    <!-- พื้นที่แสดงเนื้อหาหลักตรงกลาง -->
     <main class="container">
-        <div id="content">
-            <div style="text-align: center; padding: 50px; color: #64748b;">
-                <p>⌛ กำลังเชื่อมต่อฐานข้อมูล...</p>
-            </div>
-        </div>
+        <div id="content"></div>
     </main>
 
     <!-- Modal Popup -->
@@ -39,11 +32,9 @@
         </div>
     </div>
 
-    <!-- Firebase SDK (Compat v10) -->
+    <!-- Firebase SDK (Compat) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    
-    <!-- ไฟล์ JS หลัก -->
     <script src="script.js"></script>
 </body>
 </html>
