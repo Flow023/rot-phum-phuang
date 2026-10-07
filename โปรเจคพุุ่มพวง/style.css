@@ -1,266 +1,298 @@
 /* =====================================================
-   1. GOOGLE FONTS & VARIABLE SETUP
+   ระบบรถพุ่มพวงออนไลน์ - Full Complete CSS StyleSheet
 ===================================================== */
-@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap');
+
+@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
 
 :root {
-    --primary: #10b981;          /* สีเขียวสดหลัก */
-    --primary-hover: #059669;    /* สีเขียวเข้มตอนชี้ */
-    --primary-light: #d1fae5;    /* สีเขียวอ่อนพื้นหลัง */
-    --secondary: #3b82f6;        /* สีฟ้าปุ่มทั่วไป */
-    --secondary-hover: #2563eb;
-    --danger: #ef4444;           /* สีแดงปุ่มลบ/ยกเลิก */
-    --danger-hover: #dc2626;
-    --warning: #f59e0b;          /* สีส้มสถานะรอ */
-    --dark: #1f2937;             /* สีตัวอักษรเข้ม */
-    --light-bg: #f8fafc;         /* สีพื้นหลังแอป */
-    --card-bg: #ffffff;          /* สีการ์ด */
-    --border-color: #e2e8f0;     /* เส้นขอบอ่อน */
-    --radius: 12px;              /* ความโค้งมนหลัก */
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -1px rgba(0,0,0,0.04);
-    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.03);
+    --primary: #10b981;
+    --primary-hover: #059669;
+    --primary-light: #d1fae5;
+    --dark-bg: #2d3748;
+    --body-bg: #f8fafc;
+    --border-color: #e2e8f0;
+    --text-color: #334155;
+    --text-muted: #64748b;
+    --radius: 12px;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
-/* =====================================================
-   2. CORE RESET
-===================================================== */
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: 'Kanit', sans-serif;
-    -webkit-tap-highlight-color: transparent;
+    font-family: 'Prompt', sans-serif;
 }
 
 body {
-    background-color: var(--light-bg);
-    color: var(--dark);
+    background-color: var(--body-bg);
+    color: var(--text-color);
     line-height: 1.6;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
 }
 
 /* =====================================================
-   3. MODERN HEADER & NAVIGATION
+   1. แถบ เมนู Navbar บนสุด (Header)
 ===================================================== */
-header {
-    background: rgba(31, 41, 55, 0.95);
-    backdrop-filter: blur(8px);
-    color: white;
-    padding: 12px 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: var(--shadow-md);
+.navbar {
+    background-color: var(--dark-bg);
+    padding: 12px 20px;
     position: sticky;
     top: 0;
     z-index: 100;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
 }
 
-.logo {
-    font-size: 1.4rem;
-    font-weight: 600;
+.nav-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.brand {
+    color: #ffffff;
+    font-size: 1.3rem;
+    font-weight: 700;
+    text-decoration: none;
     display: flex;
     align-items: center;
     gap: 8px;
-    letter-spacing: 0.5px;
 }
 
-nav {
+.nav-menu {
     display: flex;
-    gap: 6px;
     align-items: center;
-    flex-wrap: wrap;
+    gap: 8px;
 }
 
-nav button {
+.nav-menu button, .nav-menu a {
     background: transparent;
-    color: #9ca3af;
     border: none;
+    color: #cbd5e1;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
     padding: 8px 14px;
     border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.95rem;
-    font-weight: 400;
-    transition: all 0.2s ease;
+    transition: all 0.2s ease-in-out;
 }
 
-nav button:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+.nav-menu button:hover, .nav-menu a:hover {
     color: #ffffff;
-    transform: translateY(-1px);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 /* =====================================================
-   4. MAIN CONTAINER & HERO SECTION
+   2. Layout และ Container หลัก
 ===================================================== */
-main#content {
-    max-width: 1080px;
-    width: 92%;
-    margin: 24px auto;
-    flex: 1;
-}
-
-.hero {
-    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-    color: white;
-    padding: 30px;
-    border-radius: var(--radius);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-    margin-bottom: 24px;
-    box-shadow: var(--shadow-lg);
-}
-
-.hero-content {
-    flex: 1;
-    text-align: left;
-}
-
-.hero-content h1 {
-    font-size: 2.2rem;
-    font-weight: 600;
-    margin-bottom: 10px;
-}
-
-.hero-content p {
-    font-size: 1.05rem;
-    margin-bottom: 20px;
-    opacity: 0.95;
-    font-weight: 300;
-}
-
-.hero-image {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-}
-
-.hero-image img {
-    max-width: 100%;
-    height: auto;
-    max-height: 220px;
-    border-radius: 12px;
-    object-fit: cover;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+.container {
+    max-width: 1100px;
+    margin: 30px auto;
+    padding: 0 20px;
 }
 
 .page-title {
-    margin-bottom: 20px;
-    border-bottom: 2px solid var(--border-color);
-    padding-bottom: 12px;
+    margin-bottom: 24px;
 }
 
-.page-title h1 {
+.page-title h1, .page-title h2 {
     font-size: 1.6rem;
-    font-weight: 600;
-    color: var(--dark);
+    color: #1e293b;
+    font-weight: 700;
+}
+
+.page-title p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
 }
 
 /* =====================================================
-   5. CARDS & GRID LAYOUT
+   3. Hero Banner หน้าหลัก
 ===================================================== */
-.card-container, .report-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-    gap: 16px;
-    margin-top: 16px;
-}
-
-.card, .report-card, .product-card {
-    background: var(--card-bg);
-    padding: 20px;
+.hero {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
     border-radius: var(--radius);
-    box-shadow: var(--shadow-sm);
+    padding: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
+    overflow: hidden;
+}
+
+.hero-content {
+    flex: 1.2;
+}
+
+.hero-content h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.hero-content p {
+    font-size: 0.95rem;
+    opacity: 0.95;
+    margin-bottom: 16px;
+    line-height: 1.5;
+}
+
+.hero-image {
+    flex: 0 0 300px;
+    max-width: 300px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.hero-image img, .hero img {
+    width: 100% !important;
+    max-width: 300px !important;
+    height: 180px !important;
+    object-fit: cover !important;
+    border-radius: 10px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    display: block !important;
+}
+
+/* =====================================================
+   4. การ์ด (Cards) และ Grid Layout
+===================================================== */
+.card-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.card {
+    background: #ffffff;
+    padding: 22px;
+    border-radius: var(--radius);
     border: 1px solid var(--border-color);
-    transition: all 0.25s ease;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.card:hover, .product-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
-    border-color: #cbd5e1;
+.card h3 {
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+    color: #1e293b;
 }
 
+.card p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* การ์ดสินค้า */
 .product-card {
+    background: #ffffff;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    padding: 18px;
     text-align: center;
+    box-shadow: var(--shadow);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
 }
 
 .product-image {
-    font-size: 3.2rem;
-    background: var(--light-bg);
-    padding: 16px;
-    border-radius: var(--radius);
-    margin-bottom: 12px;
+    font-size: 3.5rem;
+    margin-bottom: 10px;
 }
 
-.price {
+.product-card h3 {
+    font-size: 1.1rem;
+    margin-bottom: 4px;
+}
+
+.product-card .price {
+    color: var(--primary);
     font-size: 1.25rem;
-    color: var(--primary-hover);
-    font-weight: 600;
+    font-weight: 700;
     margin: 6px 0;
 }
 
 /* =====================================================
-   6. MODERN BUTTONS & INPUTS
+   5. การ์ดรายงานผู้ขาย (Report Cards Dashboard)
+===================================================== */
+.report-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+    margin-bottom: 25px;
+}
+
+.report-card {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow);
+}
+
+/* =====================================================
+   6. ปุ่มกด (Buttons) & Input
 ===================================================== */
 .btn {
+    width: 100%;
     background-color: var(--primary);
-    color: white;
+    color: #ffffff;
     border: none;
     padding: 10px 18px;
     border-radius: 8px;
-    cursor: pointer;
     font-size: 0.95rem;
-    font-weight: 500;
-    transition: all 0.2s ease;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
     display: inline-flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
     gap: 6px;
-    width: 100%;
 }
 
 .btn:hover {
     background-color: var(--primary-hover);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-sm);
 }
 
 .btn-blue {
-    background-color: var(--secondary);
+    background-color: #3b82f6;
 }
+
 .btn-blue:hover {
-    background-color: var(--secondary-hover);
+    background-color: #2563eb;
+}
+
+.btn-danger {
+    background-color: #ef4444;
+}
+
+.btn-danger:hover {
+    background-color: #dc2626;
 }
 
 .btn-success {
-    background-color: var(--primary);
+    background-color: #10b981;
 }
-.btn-danger {
-    background-color: var(--danger);
-}
-.btn-danger:hover {
-    background-color: var(--danger-hover);
+
+.btn-success:hover {
+    background-color: #059669;
 }
 
 .form-group {
     margin-bottom: 16px;
-    text-align: left;
 }
 
 .form-group label {
     display: block;
     margin-bottom: 6px;
     font-weight: 500;
-    color: #4b5563;
     font-size: 0.9rem;
 }
 
@@ -274,8 +306,7 @@ main#content {
     border-radius: 8px;
     font-size: 0.95rem;
     outline: none;
-    background-color: #fff;
-    transition: all 0.2s ease;
+    transition: border-color 0.2s;
 }
 
 .form-group input:focus, 
@@ -283,35 +314,32 @@ main#content {
 .form-group textarea:focus,
 .search-box input:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
 }
 
 .search-box {
-    margin-bottom: 20px;
+    margin-bottom: 25px;
 }
 
 /* =====================================================
-   7. TABLE STYLES
+   7. ตาราง (Tables) & Badge
 ===================================================== */
 .table-box {
     overflow-x: auto;
-    margin-top: 16px;
-    border-radius: var(--radius);
+    border-radius: 8px;
     border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-sm);
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
-    background: white;
+    text-align: left;
+    font-size: 0.9rem;
+    background: #ffffff;
 }
 
 th, td {
-    padding: 14px 16px;
-    text-align: left;
+    padding: 12px 16px;
     border-bottom: 1px solid var(--border-color);
-    font-size: 0.95rem;
 }
 
 th {
@@ -324,74 +352,32 @@ tr:last-child td {
     border-bottom: none;
 }
 
-/* =====================================================
-   8. SHOPPING CART & BADGE
-===================================================== */
-.cart-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: white;
-    padding: 16px 20px;
-    border-radius: var(--radius);
-    margin-bottom: 12px;
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-sm);
-    gap: 15px;
-}
-
-/* คอนเทนเนอร์ปุ่มเพิ่ม-ลดจำนวน */
-.cart-qty-control {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-/* ปรับขนาดปุ่ม + และ - ไม่ให้ยืดเต็มกว้าง */
-.cart-qty-btn {
-    width: 32px !important;
-    height: 32px !important;
-    padding: 0 !important;
-    font-size: 1.1rem !important;
-    font-weight: bold !important;
-    border-radius: 6px !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-}
-
-/* ปรับปุ่มลบขวา */
-.cart-delete-btn {
-    width: auto !important;
-    padding: 6px 14px !important;
-    font-size: 0.85rem !important;
-}
-
 .badge {
     padding: 4px 10px;
     border-radius: 20px;
-    background: #f1f5f9;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: inline-block;
+    background: #e2e8f0;
     color: #475569;
-    font-size: 0.85rem;
-    font-weight: 500;
 }
 
 /* =====================================================
-   9. STEPPER PROGRESS BAR (CUSTOMER)
+   8. Stepper ติดตามสถานะออเดอร์ (Order Status)
 ===================================================== */
 .stepper-wrapper {
     display: flex;
     justify-content: space-between;
-    margin: 24px 0 16px;
+    margin: 20px 0;
     position: relative;
 }
 
 .stepper-wrapper::before {
     content: '';
     position: absolute;
-    top: 19px;
-    left: 8%;
-    right: 8%;
+    top: 18px;
+    left: 10%;
+    right: 10%;
     height: 3px;
     background-color: #e2e8f0;
     z-index: 1;
@@ -399,172 +385,141 @@ tr:last-child td {
 
 .stepper-item {
     position: relative;
+    z-index: 2;
     display: flex;
     flex-direction: column;
     align-items: center;
     flex: 1;
-    z-index: 2;
 }
 
 .stepper-item .step-counter {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    background-color: #fff;
-    border: 2px solid #cbd5e1;
+    background-color: #e2e8f0;
+    color: #64748b;
     display: flex;
     justify-content: center;
     align-items: center;
     font-weight: 600;
-    color: #64748b;
-    font-size: 14px;
-    transition: all 0.3s ease;
+    margin-bottom: 6px;
+    transition: all 0.3s;
 }
 
 .stepper-item .step-name {
-    margin-top: 8px;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: #64748b;
-    font-weight: 400;
+    text-align: center;
 }
 
 .stepper-item.completed .step-counter {
-    background-color: var(--primary);
-    border-color: var(--primary);
+    background-color: #10b981;
     color: white;
 }
 
 .stepper-item.active .step-counter {
-    background-color: var(--warning);
-    border-color: var(--warning);
+    background-color: #3b82f6;
     color: white;
-    box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.2);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
 }
 
-.stepper-item.completed .step-name,
 .stepper-item.active .step-name {
-    color: var(--dark);
+    color: #3b82f6;
     font-weight: 600;
 }
 
-.stepper-wrapper.canceled::before {
-    background-color: var(--danger);
+/* =====================================================
+   9. ตะกร้าสินค้า (Cart Items)
+===================================================== */
+.cart-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 12px;
 }
 
-.stepper-item.canceled .step-counter {
-    background-color: var(--danger);
-    border-color: var(--danger);
-    color: white;
+.cart-qty-btn {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.cart-total {
+    background: white;
+    padding: 20px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    text-align: right;
+    font-size: 1.1rem;
+    font-weight: 600;
 }
 
 /* =====================================================
-   10. MODAL & RECEIPT
+   10. Modal Popup & Receipt
 ===================================================== */
 .modal {
+    display: none;
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(15, 23, 42, 0.5);
+    background: rgba(15, 23, 42, 0.6);
     backdrop-filter: blur(4px);
-    display: none;
     justify-content: center;
     align-items: center;
     z-index: 1000;
 }
 
-.modal-box {
-    background: white;
+.modal-content {
+    background: #ffffff;
     padding: 28px;
-    border-radius: 16px;
+    border-radius: var(--radius);
+    max-width: 520px;
     width: 90%;
-    max-width: 480px;
-    max-height: 85vh;
+    max-height: 90vh;
     overflow-y: auto;
     position: relative;
-    box-shadow: var(--shadow-lg);
-    animation: modalPop 0.25s ease-out;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
-@keyframes modalPop {
-    from { transform: scale(0.95); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-}
-
-.close-button {
+.close-btn {
     position: absolute;
-    top: 16px;
-    right: 16px;
-    background: var(--light-bg);
-    border: none;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    font-size: 1rem;
+    top: 14px;
+    right: 18px;
+    font-size: 1.6rem;
+    color: #94a3b8;
     cursor: pointer;
-    color: #64748b;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
-.close-button:hover {
-    background: #e2e8f0;
-    color: var(--dark);
+.close-btn:hover {
+    color: #334155;
+}
+
+/* ใบเสร็จรับเงิน */
+.receipt {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
 }
 
 .receipt-header {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
+    border-bottom: 2px dashed #cbd5e1;
+    padding-bottom: 12px;
 }
 
 .receipt-total {
     text-align: right;
     font-size: 1.2rem;
-    font-weight: 600;
-    margin: 16px 0;
-}
-
-/* =====================================================
-   11. RESPONSIVE DESIGN (MOBILE FRIENDLY)
-===================================================== */
-@media (max-width: 768px) {
-    header {
-        flex-direction: column;
-        gap: 12px;
-        padding: 12px 16px;
-    }
-
-    nav {
-        justify-content: center;
-        width: 100%;
-    }
-
-    nav button {
-        padding: 6px 10px;
-        font-size: 0.85rem;
-    }
-
-    .hero {
-        flex-direction: column-reverse;
-        text-align: center;
-        padding: 24px 16px;
-    }
-
-    .hero-content {
-        text-align: center;
-    }
-
-    .hero-content h1 {
-        font-size: 1.8rem;
-    }
-
-    .hero-image img {
-        max-height: 180px;
-    }
-
-    .stepper-item .step-name {
-        font-size: 0.75rem;
-    }
+    font-weight: 700;
+    color: var(--primary);
+    margin: 15px 0;
 }
