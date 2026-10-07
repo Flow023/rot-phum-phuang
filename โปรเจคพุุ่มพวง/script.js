@@ -643,6 +643,79 @@ function placeOrder(subtotal) {
 
     reader.readAsDataURL(slipFile);
 }
+function rejectPayment(orderId) {
+    let order = orders.find(o => o.id == orderId);
+    if (!order) return;
+
+    if (!confirm(`ต้องการปฏิเสธสลิปการโอนเงินของออเดอร์ #${orderId} ใช่หรือไม่?`)) return;
+
+    // คืนแต้มให้ลูกค้าถ้าออเดอร์นั้นมีการใช้แต้มส่วนลด
+    if (order.discount && order.discount > 0) {
+        let customer = users.find(u => u.id == order.customerId);
+        if (customer) {
+            customer.points = (customer.points || 0) + order.discount;
+            
+            // อัปเดต currentUser หากผู้ใช้ที่ล็อกอินอยู่คือลูกค้ารายนี้
+            if (currentUser && currentUser.id == customer.id) {
+                currentUser.points = customer.points;
+                localStorage.setItem("currentUser", JSON.stringify(currentUser));
+            }
+        }
+    }
+
+    // คืนสต็อกสินค้าเข้าคลัง
+    if (order.items && order.items.length > 0) {
+        order.items.forEach(item => {
+            let product = findProduct(item.productId);
+            if (product) {
+                product.quantity += item.quantity;
+            }
+        });
+    }
+
+    order.paymentStatus = "ชำระเงินไม่ถูกต้อง";
+    order.status = "ยกเลิกออเดอร์";
+
+    saveData();
+    renderNavbar();
+    alert(`ปฏิเสธการชำระเงินแล้ว (ระบบได้ทำการคืนแต้ม ${order.discount || 0} แต้ม และสต็อกสินค้าให้ลูกค้าเรียบร้อยแล้ว)`);
+    manageOrders();
+}
+function updateOrderStatus(orderId, newStatus) {
+    let order = orders.find(o => o.id == orderId);
+    if (!order) return;
+
+    // ถ้ายกเลิกออเดอร์ และก่อนหน้านี้ออเดอร์ยังไม่ได้ถูกยกเลิก ให้คืนแต้มและคืนสต็อก
+    if (newStatus === "ยกเลิกออเดอร์" && order.status !== "ยกเลิกออเดอร์") {
+        if (order.discount && order.discount > 0) {
+            let customer = users.find(u => u.id == order.customerId);
+            if (customer) {
+                customer.points = (customer.points || 0) + order.discount;
+                if (currentUser && currentUser.id == customer.id) {
+                    currentUser.points = customer.points;
+                    localStorage.setItem("currentUser", JSON.stringify(currentUser));
+                }
+            }
+        }
+
+        if (order.items && order.items.length > 0) {
+            order.items.forEach(item => {
+                let product = findProduct(item.productId);
+                if (product) {
+                    product.quantity += item.quantity;
+                }
+            });
+        }
+
+        order.paymentStatus = "ชำระเงินไม่ถูกต้อง";
+    }
+
+    order.status = newStatus;
+    saveData();
+    renderNavbar();
+    alert(`อัปเดตสถานะออเดอร์ #${orderId} เป็น "${newStatus}" เรียบร้อยแล้ว`);
+    manageOrders();
+}
 
 /* =====================================================
    10. ระบบสมาชิก (Register & Login)
@@ -683,56 +756,62 @@ function showRegister() {
     openModal(html);
 }
 
-function registerUser() {
-    let name = document.getElementById("registerName").value.trim();
-    let phone = document.getElementById("registerPhone").value.trim();
-    let username = document.getElementById("registerUsername").value.trim();
-    let password = document.getElementById("registerPassword").value;
-    let role = document.getElementById("registerRole").value;
-
-    if (!name || !phone || !username || !password) {
-        alert("กรุณากรอกข้อมูลให้ครบทุกช่อง");
-        return;
-    }
-
-    if (users.some(user => user.username === username)) {
-        alert("Username นี้มีผู้ใช้งานแล้ว");
-        return;
-    }
-
-    let newUser = {
-        id: Date.now(),
-        name: name,
-        phone: phone,
-        username: username,
-        password: password,
-        role: role,
-        points: 0
-    };
-
-    users.push(newUser);
-    saveData();
-    
-    alert("สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบ");
-    closeModal();
-    navigateTo('home');
-    
-    setTimeout(() => {
-        showLogin();
-    }, 200);
+function showRegister() {
+    let html = `
+        <div class="form-box">
+            <h2>📝 สมัครสมาชิก</h2>
+            <div class="form-group">
+                <label>ชื่อ-นามสกุล</label>
+                <input id="registerName" placeholder="กรอกชื่อ-นามสกุล" onkeyup="handleRegisterKey(event)">
+            </div>
+            <div class="form-group">
+                <label>ชื่อผู้ใช้ (Username)</label>
+                <input id="registerUsername" placeholder="ตั้งชื่อผู้ใช้" onkeyup="handleRegisterKey(event)">
+            </div>
+            <div class="form-group">
+                <label>รหัสผ่าน</label>
+                <input id="registerPassword" type="password" placeholder="ตั้งรหัสผ่าน" onkeyup="handleRegisterKey(event)">
+            </div>
+            <div class="form-group">
+                <label>เบอร์โทรศัพท์</label>
+                <input id="registerPhone" placeholder="กรอกเบอร์โทรศัพท์" onkeyup="handleRegisterKey(event)">
+            </div>
+            <div class="form-group">
+                <label>ประเภทสมาชิก</label>
+                <select id="registerRole" onkeyup="handleRegisterKey(event)">
+                    <option value="customer">ลูกค้า</option>
+                    <option value="seller">ผู้ขาย</option>
+                </select>
+            </div>
+            <button class="btn" onclick="registerUser()">สมัครสมาชิก</button>
+            <p style="margin-top: 15px; text-align: center;">
+                มีบัญชีแล้ว? 
+                <button class="btn btn-blue" style="width: auto; padding: 4px 12px; margin-left: 5px;" onclick="closeModal(); setTimeout(showLogin, 100);">
+                    เข้าสู่ระบบ
+                </button>
+            </p>
+        </div>
+    `;
+    openModal(html);
 }
 
+// ฟังก์ชันดักจับปุ่ม Enter หน้าสมัครสมาชิก
+function handleRegisterKey(event) {
+    if (event.key === "Enter") {
+        registerUser();
+    }
+}
 function showLogin() {
     let html = `
         <div class="form-box">
             <h2>🔐 เข้าสู่ระบบ</h2>
             <div class="form-group">
                 <label>Username</label>
-                <input id="loginUsername" placeholder="Username">
+                <input id="loginUsername" placeholder="Username" onkeyup="handleLoginKey(event)">
             </div>
             <div class="form-group">
                 <label>Password</label>
-                <input id="loginPassword" type="password" placeholder="Password">
+                <input id="loginPassword" type="password" placeholder="Password" onkeyup="handleLoginKey(event)">
             </div>
             <button class="btn" onclick="login()">เข้าสู่ระบบ</button>
             <p style="margin-top: 15px; text-align: center;">ยังไม่มีบัญชี?</p>
@@ -742,6 +821,12 @@ function showLogin() {
     openModal(html);
 }
 
+// ฟังก์ชันดักจับปุ่ม Enter หน้าล็อกอิน
+function handleLoginKey(event) {
+    if (event.key === "Enter") {
+        login();
+    }
+}
 function login() {
     let username = document.getElementById("loginUsername").value.trim();
     let password = document.getElementById("loginPassword").value;
