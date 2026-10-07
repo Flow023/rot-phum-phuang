@@ -11,19 +11,25 @@
 </head>
 <body>
 
-    <!-- แถบ Navbar ด้านบนสุด -->
+    <!-- แถบ Navbar ด้านบนสุดแบบในรูป -->
     <nav class="navbar">
         <div class="nav-container">
             <a href="#" class="brand" onclick="navigateTo('home')">
-                <img src="rotphong.png" alt="โลโก้รถพุ่มพวง" class="brand-logo">
+                🚚 รถพุ่มพวง
             </a>
-            <div id="navbarMenu" class="nav-menu"></div>
+            <div id="navbarMenu" class="nav-menu">
+                <!-- เมนูจะเรนเดอร์ผ่าน renderNavbar() -->
+            </div>
         </div>
     </nav>
 
-    <!-- พื้นที่แสดงเนื้อหาหลักตรงกลาง -->
+    <!-- พื้นที่แสดงเนื้อหาหลัก -->
     <main class="container">
-        <div id="content"></div>
+        <div id="content">
+            <div style="text-align: center; padding: 50px; color: #64748b;">
+                <p>⌛ กำลังเชื่อมต่อฐานข้อมูล...</p>
+            </div>
+        </div>
     </main>
 
     <!-- Modal Popup -->
@@ -37,6 +43,8 @@
     <!-- Firebase SDK (Compat v10) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    
+    <!-- ไฟล์ JS หลัก -->
     <script src="script.js"></script>
 </body>
 </html>
