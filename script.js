@@ -262,14 +262,114 @@ async function registerUser() {
 // ==========================================
 function renderHome() {
     let content = document.getElementById("content");
-    content.innerHTML = `
-        <div class="hero">
-            <h1>🚚 รถพุ่มพวงออนไลน์</h1>
-            <p>ยกตลาดสดมาไว้หน้าบ้านคุณ สด ใหม่ ส่งไวทุกวัน</p>
-            <br>
-            <button class="btn" style="width: auto; padding: 10px 24px;" onclick="navigateTo('trucks')">🛒 เลือกซื้อสินค้าเลย</button>
+    
+    // คำนวณจำนวนข้อมูลสำหรับแสดงบน Dashboard
+    let totalTrucks = trucks.length;
+    let totalProducts = products.length;
+    let totalUsers = users.length;
+    let cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+    let html = `
+        <!-- Hero Banner หน้าแรก -->
+        <div class="hero" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 35px 30px; border-radius: 16px; color: white; display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.2);">
+            <div>
+                <h1 style="font-size: 2.2rem; font-weight: 700; margin-bottom: 10px;">🚚 รถพุ่มพวง</h1>
+                <p style="font-size: 1.05rem; opacity: 0.9; margin-bottom: 20px;">ตลาดเคลื่อนที่ ซื้อของง่าย ส่งถึงสั่งซื้อได้จากรถพุ่มพวงใกล้บ้านคุณ</p>
+                <button class="btn btn-blue" style="width: auto; padding: 10px 22px; font-weight: 600;" onclick="navigateTo('trucks')">🚚 ดูรถพุ่มพวงทั้งหมด</button>
+            </div>
+            <div style="max-width: 320px; display: class-hide-mobile;">
+                <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=600" alt="รถพุ่มพวง" style="width: 100%; border-radius: 12px; border: 3px solid rgba(255,255,255,0.3); box-shadow: 0 8px 16px rgba(0,0,0,0.15);">
+            </div>
         </div>
+
+        <!-- สรุปข้อมูลระดบบ (Stat Cards) -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px;">
+            <div class="card" style="padding: 16px; display: flex; align-items: center; gap: 12px; margin: 0;">
+                <div style="font-size: 2rem;">🚚</div>
+                <div>
+                    <h4 style="margin: 0; color: #1e293b; font-size: 0.95rem;">รถพุ่มพวง</h4>
+                    <p style="margin: 0; font-size: 0.85rem; color: #64748b;">มีรถทั้งหมด <strong>${totalTrucks}</strong> คัน</p>
+                </div>
+            </div>
+            <div class="card" style="padding: 16px; display: flex; align-items: center; gap: 12px; margin: 0;">
+                <div style="font-size: 2rem;">🥬</div>
+                <div>
+                    <h4 style="margin: 0; color: #1e293b; font-size: 0.95rem;">สินค้าในระบบ</h4>
+                    <p style="margin: 0; font-size: 0.85rem; color: #64748b;">มีสินค้าทั้งหมด <strong>${totalProducts}</strong> รายการ</p>
+                </div>
+            </div>
+            <div class="card" style="padding: 16px; display: flex; align-items: center; gap: 12px; margin: 0;">
+                <div style="font-size: 2rem;">👥</div>
+                <div>
+                    <h4 style="margin: 0; color: #1e293b; font-size: 0.95rem;">สมาชิก</h4>
+                    <p style="margin: 0; font-size: 0.85rem; color: #64748b;">มีสมาชิกทั้งหมด <strong>${totalUsers}</strong> คน</p>
+                </div>
+            </div>
+            <div class="card" style="padding: 16px; display: flex; align-items: center; gap: 12px; margin: 0;">
+                <div style="font-size: 2rem;">🛒</div>
+                <div>
+                    <h4 style="margin: 0; color: #1e293b; font-size: 0.95rem;">ตะกร้าของฉัน</h4>
+                    <p style="margin: 0; font-size: 0.85rem; color: #64748b;">มีสินค้าในตะกร้า <strong>${cartCount}</strong> รายการ</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- รายการรถพุ่มพวงที่กำลังให้บริการ -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h2 style="font-size: 1.3rem; margin: 0;">🚚 รถพุ่มพวงที่กำลังให้บริการ</h2>
+            <button class="btn btn-blue" style="width: auto; padding: 6px 14px; font-size: 0.85rem;" onclick="navigateTo('trucks')">ดูทั้งหมด →</button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 15px; margin-bottom: 30px;">
     `;
+
+    if (trucks.length === 0) {
+        html += `<div class="card" style="grid-column: 1 / -1;"><p style="color: #64748b; text-align: center;">ยังไม่มีข้อมูลรถพุ่มพวงในขณะนี้</p></div>`;
+    } else {
+        trucks.slice(0, 4).forEach(truck => {
+            html += `
+                <div class="card" style="margin: 0; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <h3 style="margin-bottom: 6px;">🚚 ${truck.name}</h3>
+                        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 4px;"><strong>ทะเบียน:</strong> ${truck.license}</p>
+                        <p style="font-size: 0.85rem; color: #10b981; margin-bottom: 8px;">📍 ${truck.location || 'ไม่ระบุสถานที่'}</p>
+                        <p style="font-size: 0.8rem; color: #94a3b8; line-height: 1.4;">${truck.description || 'ขายผักสดและของใช้ในบ้าน'}</p>
+                    </div>
+                    <button class="btn" style="margin-top: 15px; padding: 8px;" onclick="navigateTo('trucks')">ดูสินค้าในรถ</button>
+                </div>
+            `;
+        });
+    }
+
+    html += `
+        </div>
+
+        <!-- รายการสินค้าแนะนำประจำวัน -->
+        <h2 style="font-size: 1.3rem; margin-bottom: 15px;">🥬 สินค้าแนะนำประจำวัน</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px;">
+    `;
+
+    if (products.length === 0) {
+        html += `<div class="card" style="grid-column: 1 / -1;"><p style="color: #64748b; text-align: center;">ยังไม่มีสินค้าแนะนำในขณะนี้</p></div>`;
+    } else {
+        products.slice(0, 6).forEach(p => {
+            let truck = findTruck(p.truckId);
+            html += `
+                <div class="card" style="margin: 0; text-align: center; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <div style="font-size: 2.5rem; margin-bottom: 8px;">🥬</div>
+                        <h4 style="margin-bottom: 4px; font-size: 1rem;">${p.name}</h4>
+                        <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 6px;">${truck ? truck.name : 'รถพุ่มพวง'}</p>
+                        <p style="color: #10b981; font-weight: 700; font-size: 1.1rem; margin-bottom: 10px;">${formatPrice(p.price)} / ${p.unit || 'ชิ้น'}</p>
+                    </div>
+                    <button class="btn" style="padding: 6px 12px; font-size: 0.85rem;" onclick="addToCart('${p.id}')">🛒 ใส่ตะกร้า</button>
+                </div>
+            `;
+        });
+    }
+
+    html += `</div>`;
+    content.innerHTML = html;
 }
 
 function renderTrucks() {
