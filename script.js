@@ -405,24 +405,28 @@ function showCart() {
 
         html += `
             <div class="cart-item">
-                <div>
-                    <strong>${product.name}</strong><br>
-                    ${formatPrice(product.price)}
+                <div style="flex: 2;">
+                    <strong style="font-size: 1.05rem;">${product.name}</strong><br>
+                    <span style="color: #64748b; font-size: 0.9rem;">${formatPrice(product.price)}</span>
+                </div>
+                <div class="cart-qty-control" style="flex: 1; justify-content: center;">
+                    <button class="btn cart-qty-btn" onclick="decreaseCart(${product.id})">-</button>
+                    <span style="font-weight: 600; min-width: 24px; text-align: center;">${item.quantity}</span>
+                    <button class="btn cart-qty-btn" onclick="increaseCart(${product.id})">+</button>
+                </div>
+                <div style="flex: 1; text-align: right; font-weight: 600; color: #10b981;">
+                    ${formatPrice(subtotal)}
                 </div>
                 <div>
-                    <button class="btn" onclick="decreaseCart(${product.id})">-</button>
-                    ${item.quantity}
-                    <button class="btn" onclick="increaseCart(${product.id})">+</button>
+                    <button class="btn btn-danger cart-delete-btn" onclick="removeFromCart(${product.id})">🗑️ ลบ</button>
                 </div>
-                <div>${formatPrice(subtotal)}</div>
-                <button class="btn btn-danger" onclick="removeFromCart(${product.id})">ลบ</button>
             </div>
         `;
     });
 
     html += `
         <div class="cart-total">
-            ยอดรวม: ${formatPrice(total)}<br><br>
+            ยอดรวมทั้งสิ้น: <span style="color: #10b981; font-size: 1.4rem;">${formatPrice(total)}</span><br><br>
             <button class="btn" onclick="checkout()">💳 ไปชำระเงิน</button>
         </div>
     `;
