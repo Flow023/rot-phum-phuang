@@ -753,7 +753,6 @@ async function registerUser() {
     let existingUser = users.find(u => u.username.toLowerCase() === username.toLowerCase());
     if (existingUser) { alert("Username นี้ถูกใช้ไปแล้ว"); return; }
 
-    // ป้องกันการแอบส่ง role เป็น admin
     if (role !== "customer" && role !== "seller") {
         role = "customer";
     }
@@ -1076,7 +1075,7 @@ function showSeller() {
     `;
 }
 
-// เรนเดอร์ส่วนจัดการอนุมัติ / ปฏิเสธสิทธิ์ผู้ขาย สำหรับแอดมิน
+// อนุมัติ / ปฏิเสธสิทธิ์ผู้ขาย สำหรับแอดมิน
 function renderPendingSellersHTML() {
     let pendingSellers = users.filter(u => u.role === "seller" && u.approved === false);
     if (pendingSellers.length === 0) return '';
@@ -1119,7 +1118,7 @@ function renderPendingSellersHTML() {
     return html;
 }
 
-// ฟังก์ชันอนุมัติสิทธิ์ผู้ขาย
+// อนุมัติผู้ขาย
 async function approveSeller(userId) {
     let user = users.find(u => String(u.id) === String(userId));
     if (!user) return;
@@ -1137,16 +1136,14 @@ async function approveSeller(userId) {
                 await db.collection("users").doc(String(user.id)).set(user, { merge: true });
             }
         }
-    } catch (e) {
-        console.error(e);
-    }
+    } catch (e) { console.error(e); }
 
     saveData();
     alert(`อนุมัติสิทธิ์ผู้ขายให้คุณ ${user.name} เรียบร้อยแล้ว!`);
     navigateTo('seller');
 }
 
-// ฟังก์ชันไม่อนุมัติ (ปฏิเสธสิทธิ์ผู้ขาย และปรับเป็นลูกค้าทั่วไป)
+// ไม่อนุมัติผู้ขาย (ปรับเปลี่ยนยศเป็นลูกค้าทั่วไป)
 async function rejectSeller(userId) {
     let user = users.find(u => String(u.id) === String(userId));
     if (!user) return;
@@ -1168,9 +1165,7 @@ async function rejectSeller(userId) {
                 await db.collection("users").doc(String(user.id)).set(user, { merge: true });
             }
         }
-    } catch (e) {
-        console.error(e);
-    }
+    } catch (e) { console.error(e); }
 
     saveData();
     alert(`ปฏิเสธสิทธิ์ผู้ขายของคุณ ${user.name} แล้ว (ปรับเปลี่ยนยศเป็นลูกค้าเรียบร้อยแล้ว)`);
@@ -1527,7 +1522,7 @@ async function deleteProduct(productId) {
 }
 
 /* =====================================================
-   14. จัดการออเดอร์ (Confirm & Reject Fix)
+   14. จัดการออเดอร์
 ===================================================== */
 
 function manageOrders() {
