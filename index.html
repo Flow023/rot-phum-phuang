@@ -7,6 +7,27 @@
     <title>รถพุ่มพวง - ตลาดเคลื่อนที่ออนไลน์</title>
     <link rel="stylesheet" href="style.css">
 </head>
+    // Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBjEzbFuCngT-u_hvalTn0Lw-ufILi7qYc",
+  authDomain: "phomphung-f25c5.firebaseapp.com",
+  projectId: "phomphung-f25c5",
+  storageBucket: "phomphung-f25c5.firebasestorage.app",
+  messagingSenderId: "6978226057",
+  appId: "1:6978226057:web:ab86d3de879a56ff464358",
+  measurementId: "G-J24X9W5K4S"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
 <body>
 
