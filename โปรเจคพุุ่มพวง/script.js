@@ -556,7 +556,7 @@ function calculateDiscount(subtotal, userPoints) {
 function placeOrder(subtotal) {
     let address = document.getElementById("customerAddress").value.trim();
     let slipInput = document.getElementById("slipImage");
-    let slip = slipInput.files[0];
+    let slipFile = slipInput.files[0];
     let pointsInput = document.getElementById("usePointsInput");
     let pointsUsed = pointsInput ? Number(pointsInput.value) || 0 : 0;
 
@@ -565,72 +565,79 @@ function placeOrder(subtotal) {
         return;
     }
 
-    if (!slip) {
+    if (!slipFile) {
         alert("กรุณาแนบสลิปการโอนเงิน");
         return;
     }
 
-    let finalTotal = subtotal - pointsUsed;
-    let items = [];
+    // อ่านไฟล์รูปภาพเปลี่ยนเป็น Base64
+    let reader = new FileReader();
+    reader.onload = function (e) {
+        let slipDataUrl = e.target.result; // รูปสลิปจริง
+        let finalTotal = subtotal - pointsUsed;
+        let items = [];
 
-    for (let cartItem of cart) {
-        let product = findProduct(cartItem.productId);
-        if (cartItem.quantity > product.quantity) {
-            alert(`สินค้า ${product.name} มีไม่พอ`);
-            return;
+        for (let cartItem of cart) {
+            let product = findProduct(cartItem.productId);
+            if (cartItem.quantity > product.quantity) {
+                alert(`สินค้า ${product.name} มีไม่พอ`);
+                return;
+            }
+
+            let itemSubtotal = product.price * cartItem.quantity;
+            items.push({
+                productId: product.id,
+                productName: product.name,
+                quantity: cartItem.quantity,
+                price: product.price,
+                subtotal: itemSubtotal
+            });
         }
 
-        let itemSubtotal = product.price * cartItem.quantity;
-        items.push({
-            productId: product.id,
-            productName: product.name,
-            quantity: cartItem.quantity,
-            price: product.price,
-            subtotal: itemSubtotal
+        let firstProduct = findProduct(cart[0].productId);
+
+        let order = {
+            id: getNextOrderId(),
+            customerId: currentUser.id,
+            customerName: currentUser.name,
+            phone: currentUser.phone,
+            address: address,
+            truckId: firstProduct.truckId,
+            items: items,
+            subtotal: subtotal,
+            discount: pointsUsed,
+            total: finalTotal,
+            date: new Date().toISOString(),
+            status: "รอตรวจสอบ",
+            paymentMethod: "โอนเงิน",
+            paymentStatus: "รอตรวจสอบ",
+            slipImage: slipDataUrl, // 🌟 บันทึกรูปสลิปจริง
+            receiptNumber: null
+        };
+
+        orders.push(order);
+
+        if (pointsUsed > 0) {
+            currentUser.points = (currentUser.points || 0) - pointsUsed;
+            let userInList = users.find(u => u.id == currentUser.id);
+            if (userInList) userInList.points = currentUser.points;
+            localStorage.setItem("currentUser", JSON.stringify(currentUser));
+        }
+
+        items.forEach(item => {
+            let product = findProduct(item.productId);
+            if (product) product.quantity -= item.quantity;
         });
-    }
 
-    let firstProduct = findProduct(cart[0].productId);
-
-    let order = {
-        id: getNextOrderId(),
-        customerId: currentUser.id,
-        customerName: currentUser.name,
-        phone: currentUser.phone,
-        address: address,
-        truckId: firstProduct.truckId,
-        items: items,
-        subtotal: subtotal,
-        discount: pointsUsed,
-        total: finalTotal,
-        date: new Date().toISOString(),
-        status: "รอตรวจสอบ",
-        paymentMethod: "โอนเงิน",
-        paymentStatus: "รอตรวจสอบ",
-        slipName: slip.name,
-        receiptNumber: null
+        cart = [];
+        saveData();
+        renderNavbar();
+        closeModal();
+        alert("สั่งซื้อสำเร็จ กรุณารอร้านตรวจสอบการโอนเงิน");
+        navigateTo('orders');
     };
 
-    orders.push(order);
-
-    if (pointsUsed > 0) {
-        currentUser.points = (currentUser.points || 0) - pointsUsed;
-        let userInList = users.find(u => u.id == currentUser.id);
-        if (userInList) userInList.points = currentUser.points;
-        localStorage.setItem("currentUser", JSON.stringify(currentUser));
-    }
-
-    items.forEach(item => {
-        let product = findProduct(item.productId);
-        if (product) product.quantity -= item.quantity;
-    });
-
-    cart = [];
-    saveData();
-    renderNavbar();
-    closeModal();
-    alert("สั่งซื้อสำเร็จ กรุณารอร้านตรวจสอบการโอนเงิน");
-    navigateTo('orders');
+    reader.readAsDataURL(slipFile);
 }
 
 /* =====================================================
@@ -641,10 +648,6 @@ function showRegister() {
     let html = `
         <div class="form-box">
             <h2>📝 สมัครสมาชิก</h2>
-            <div class="form-group">
-                <label>ชื่อ-นามสกุล</label>
-                <input id="registerName" placeholder="กรอกชื่อ-นามสกุล">
-            </div>
             <div class="form-group">
                 <label>ชื่อผู้ใช้ (Username)</label>
                 <input id="registerUsername" placeholder="ตั้งชื่อผู้ใช้">
@@ -900,10 +903,6 @@ function showOrders() {
    12. ระบบผู้ขาย (Seller System)
 ===================================================== */
 
-/* =====================================================
-   หน้าระบบผู้ขาย (Seller Dashboard - ดีไซน์ใหม่แน่นเต็มจอ)
-===================================================== */
-
 function showSeller() {
     if (!currentUser || currentUser.role !== "seller") {
         alert("กรุณาเข้าสู่ระบบผู้ขาย");
@@ -1049,11 +1048,16 @@ function manageTrucks() {
 
     trucks.forEach(truck => {
         html += `
-            <div class="card" style="margin-bottom: 10px;">
-                <h3>${truck.name}</h3>
-                <p>ทะเบียน: ${truck.license}</p>
-                <p>${truck.location}</p>
-                <button class="btn btn-danger" onclick="deleteTruck(${truck.id})">ลบรถ</button>
+            <div class="card" style="margin-bottom: 15px;">
+                <h3>🚚 ${truck.name}</h3>
+                <p><strong>ทะเบียน:</strong> ${truck.license}</p>
+                <p>📍 ${truck.location}</p>
+                <p style="color: #666; font-size: 0.9rem; margin-bottom: 12px;">${truck.description || '-'}</p>
+                
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button class="btn btn-blue" onclick="showEditTruck(${truck.id})">✏️ แก้ไขข้อมูลรถ</button>
+                    <button class="btn btn-danger" onclick="deleteTruck(${truck.id})">🗑️ ลบรถ</button>
+                </div>
             </div>
         `;
     });
@@ -1061,33 +1065,59 @@ function manageTrucks() {
     document.getElementById("content").innerHTML = html;
 }
 
-function showAddTruck() {
+// เปิดหน้าต่าง Modal แก้ไขข้อมูลรถ
+function showEditTruck(truckId) {
+    let truck = findTruck(truckId);
+    if (!truck) return;
+
     let html = `
-        <h2>เพิ่มรถพุ่มพวง</h2>
-        <div class="form-group"><label>ชื่อรถ</label><input id="truckName"></div>
-        <div class="form-group"><label>ทะเบียน</label><input id="truckLicense"></div>
-        <div class="form-group"><label>สถานที่</label><input id="truckLocation"></div>
-        <div class="form-group"><label>รายละเอียด</label><textarea id="truckDescription"></textarea></div>
-        <button class="btn" onclick="saveTruck()">บันทึก</button>
+        <h2>✏️ แก้ไขข้อมูลรถพุ่มพวง</h2>
+        <div class="form-group">
+            <label>ชื่อรถ</label>
+            <input id="editTruckName" value="${truck.name}">
+        </div>
+        <div class="form-group">
+            <label>ทะเบียน</label>
+            <input id="editTruckLicense" value="${truck.license}">
+        </div>
+        <div class="form-group">
+            <label>สถานที่ให้บริการ</label>
+            <input id="editTruckLocation" value="${truck.location}">
+        </div>
+        <div class="form-group">
+            <label>รายละเอียด</label>
+            <textarea id="editTruckDescription" rows="3">${truck.description || ''}</textarea>
+        </div>
+        <button class="btn" onclick="saveEditTruck(${truck.id})">💾 บันทึกการแก้ไข</button>
     `;
+
     openModal(html);
 }
 
-function saveTruck() {
-    let name = document.getElementById("truckName").value.trim();
-    let license = document.getElementById("truckLicense").value.trim();
-    let location = document.getElementById("truckLocation").value.trim();
-    let description = document.getElementById("truckDescription").value.trim();
+// บันทึกข้อมูลรถพุ่มพวงที่แก้ไข
+function saveEditTruck(truckId) {
+    let truck = findTruck(truckId);
+    if (!truck) return;
 
-    if (!name) {
-        alert("กรุณากรอกชื่อรถ");
+    let name = document.getElementById("editTruckName").value.trim();
+    let license = document.getElementById("editTruckLicense").value.trim();
+    let location = document.getElementById("editTruckLocation").value.trim();
+    let description = document.getElementById("editTruckDescription").value.trim();
+
+    if (!name || !license) {
+        alert("กรุณากรอกชื่อรถและทะเบียนรถให้ครบถ้วน");
         return;
     }
 
-    trucks.push({ id: Date.now(), name, license, location, description });
+    truck.name = name;
+    truck.license = license;
+    truck.location = location;
+    truck.description = description;
+
     saveData();
     closeModal();
     manageTrucks();
+    alert("อัปเดตข้อมูลรถพุ่มพวงเรียบร้อยแล้ว");
 }
 
 function deleteTruck(truckId) {
@@ -1172,14 +1202,27 @@ function saveProduct() {
         return;
     }
 
-    products.push({
-        id: Date.now(),
-        truckId: truckId,
-        name: name,
-        price: price,
-        quantity: quantity,
-        unit: unit !== "" ? unit : "ชิ้น"
-    });
+    // ตรวจสอบว่ารถคันนี้มีสินค้านี้อยู่แล้วหรือไม่
+    let existingProduct = products.find(p => p.truckId === truckId && p.name.toLowerCase() === name.toLowerCase());
+
+    if (existingProduct) {
+        // ถ้านามซ้ำ ให้ทบจำนวนสต็อกเพิ่มเข้าไปในรายการเดิม
+        existingProduct.quantity += quantity;
+        existingProduct.price = price; // อัปเดตราคาล่าสุด
+        if (unit) existingProduct.unit = unit;
+        alert(`พบสินค้า "${name}" ในรถคันนี้อยู่แล้ว ระบบได้ทำการบวกเพิ่มจำนวนสต็อกให้อัตโนมัติ`);
+    } else {
+        // ถ้าเป็นสินค้าใหม่ ให้สร้างรายการใหม่
+        products.push({
+            id: Date.now(),
+            truckId: truckId,
+            name: name,
+            price: price,
+            quantity: quantity,
+            unit: unit !== "" ? unit : "ชิ้น"
+        });
+        alert("เพิ่มสินค้าเรียบร้อยแล้ว");
+    }
 
     saveData();
     closeModal();
@@ -1265,15 +1308,23 @@ function manageOrders() {
         let order = orders[i];
 
         html += `
-            <div class="card" style="margin-bottom: 15px; border-left: 5px solid ${order.paymentStatus === 'ชำระเงินแล้ว' ? '#28a745' : '#ffc107'};">
+            <div class="card" style="margin-bottom: 15px; border-left: 5px solid ${order.paymentStatus === 'ชำระเงินแล้ว' ? '#10b981' : '#f59e0b'};">
                 <h3>ออเดอร์ #${order.id}</h3>
                 <p><strong>ลูกค้า:</strong> ${order.customerName} (${order.phone})</p>
                 <p><strong>ที่อยู่จัดส่ง:</strong> ${order.address || '-'}</p>
                 ${order.discount ? `<p style="color: #dc2626;"><strong>ส่วนลดแต้ม:</strong> -${order.discount} บาท</p>` : ''}
                 <p><strong>ยอดเงินสุทธิ:</strong> <strong>${formatPrice(order.total)}</strong></p>
-                <p><strong>ไฟล์สลิป:</strong> 📄 ${order.slipName || 'ไม่มีสลิป'}</p>
                 <p><strong>สถานะการชำระเงิน:</strong> <span class="badge">${order.paymentStatus}</span></p>
-                
+
+                <!-- ปุ่มเปิดดูรูปภาพสลิป -->
+                <div style="margin: 10px 0;">
+                    ${order.slipImage ? `
+                        <button class="btn btn-blue" style="width: auto; padding: 6px 12px; font-size: 0.85rem;" onclick="viewSlip('${order.id}')">
+                            🖼️ ดูหลักฐานสลิปโอนเงิน
+                        </button>
+                    ` : '<p style="color: #ef4444; font-size: 0.85rem;">⚠️ ไม่มีหลักฐานสลิป</p>'}
+                </div>
+
                 ${order.receiptNumber ? `<p><strong>เลขที่ใบเสร็จ:</strong> ${order.receiptNumber}</p>` : ''}
 
                 <hr style="margin: 10px 0;">
@@ -1283,7 +1334,7 @@ function manageOrders() {
 
         if (order.paymentStatus === "รอตรวจสอบ") {
             html += `
-                <button class="btn btn-success" onclick="confirmPayment(${order.id})">
+                <button class="btn btn-success" style="margin-bottom: 6px;" onclick="confirmPayment(${order.id})">
                     ✅ ยืนยันสลิปถูกต้อง
                 </button>
                 <button class="btn btn-danger" onclick="rejectPayment(${order.id})">
@@ -1312,6 +1363,26 @@ function manageOrders() {
     }
 
     content.innerHTML = html;
+}
+
+// ฟังก์ชันแสดงรูปสลิปขยายใหญ่ใน Modal
+function viewSlip(orderId) {
+    let order = orders.find(o => o.id == orderId);
+    if (!order || !order.slipImage) return;
+
+    let html = `
+        <div style="text-align: center;">
+            <h2>🖼️ หลักฐานการโอนเงิน (ออเดอร์ #${order.id})</h2>
+            <p>ยอดโอนสุทธิ: <strong>${formatPrice(order.total)}</strong></p>
+            <hr style="margin: 12px 0;">
+            <img src="${order.slipImage}" alt="สลิปการโอนเงิน" style="max-width: 100%; max-height: 400px; border-radius: 8px; border: 1px solid #ccc; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+            <div style="margin-top: 16px;">
+                <button class="btn btn-blue" onclick="closeModal()">ปิดหน้าต่าง</button>
+            </div>
+        </div>
+    `;
+
+    openModal(html);
 }
 
 function confirmPayment(orderId) {
