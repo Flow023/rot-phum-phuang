@@ -530,3 +530,47 @@ tr:last-child td {
     color: var(--primary);
     margin: 15px 0;
 }
+/* =====================================================
+   ปรับแต่ง Responsive Navbar สำหรับจอมือถือ (Max-width: 768px)
+===================================================== */
+@media (max-width: 768px) {
+    .navbar {
+        padding: 10px 12px;
+    }
+
+    .nav-container {
+        flex-wrap: wrap; /* อนุญาตให้องค์ประกอบตกลงมาอีกบรรทัดได้หากล้น */
+        gap: 10px;
+    }
+
+    .brand {
+        font-size: 1.1rem;
+    }
+
+    .brand-logo {
+        height: 32px; /* ปรับขนาดโลโก้ให้พอดีมือถือ */
+    }
+
+    .nav-menu {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        overflow-x: auto; /* ทำให้ปุ่มเมนูเลื่อนซ้าย-ขวาได้หากยาวเกินหน้าจอ */
+        white-space: nowrap;
+        padding-bottom: 4px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .nav-menu button, 
+    .nav-menu a {
+        padding: 6px 10px;
+        font-size: 0.82rem;
+        flex-shrink: 0; /* ป้องกันไม่ให้ปุ่มโดนบีบจนข้อความเบี้ยว */
+    }
+
+    .role-badge {
+        font-size: 0.75rem;
+        padding: 2px 6px;
+    }
+}
