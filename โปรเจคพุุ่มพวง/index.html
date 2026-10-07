@@ -3,72 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>รถพุ่มพวงออนไลน์ - Rot Phum Phuang</title>
-    
-    <!-- นำเข้าไฟล์สไตล์ CSS -->
+    <title>รถพุ่มพวง - ตลาดเคลื่อนที่ออนไลน์</title>
     <link rel="stylesheet" href="style.css">
-    
-    <!-- นำเข้า Google Fonts (Prompt / Kanit) เพื่อความสวยงาม -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <!-- แถบเมนูด้านบน (Navbar) -->
+    <!-- แถบ Navbar ด้านบนสุดแบบในรูป -->
     <nav class="navbar">
         <div class="nav-container">
             <a href="#" class="brand" onclick="navigateTo('home')">
-                🚚 รถพุ่มพวงออนไลน์
+                🚚 รถพุ่มพวง
             </a>
-            
-            <div class="nav-menu">
-                <a href="#" onclick="navigateTo('home')">หน้าแรก</a>
-                <a href="#" onclick="navigateTo('trucks')">🚚 รถพุ่มพวง</a>
-                <a href="#" onclick="navigateTo('cart')">🛒 ตะกร้า</a>
-                <a href="#" onclick="navigateTo('orders')">📦 ออเดอร์ของฉัน</a>
-            </div>
-
-            <!-- เมนูด้านขวา (แสดงข้อมูลผู้ใช้ / ปุ่มเข้าสู่ระบบ) -->
-            <div id="navRight" class="nav-right">
-                <!-- เนื้อหาจะถูกเรนเดอร์ผ่าน JavaScript (renderNavbar) -->
+            <div id="navbarMenu" class="nav-menu">
+                <!-- เมนูจะเรนเดอร์ผ่าน renderNavbar() -->
             </div>
         </div>
     </nav>
 
-    <!-- พื้นที่แสดงเนื้อหาหลักของเว็บ (Content Container) -->
+    <!-- พื้นที่แสดงเนื้อหาหลัก -->
     <main class="container">
         <div id="content">
-            <!-- หน้า Home / Trucks / Cart / Orders / Seller จะสลับกันมาขึ้นที่นี่ -->
-            <div style="text-align: center; padding: 50px;">
-                <p>⌛ กำลังโหลดข้อมูลระบบ...</p>
+            <div style="text-align: center; padding: 50px; color: #64748b;">
+                <p>⌛ กำลังเชื่อมต่อฐานข้อมูล...</p>
             </div>
         </div>
     </main>
 
-    <!-- หน้าต่างป๊อปอัพ Modal (สำหรับ ล็อกอิน / สมัครสมาชิก / สลิปโอนเงิน / ฟอร์มต่างๆ) -->
+    <!-- Modal Popup -->
     <div id="modal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">&times;</span>
-            <div id="modalBody">
-                <!-- เนื้อหาป๊อปอัพจะถูกแสดงผ่าน JavaScript (openModal) -->
-            </div>
+            <div id="modalContent"></div>
         </div>
     </div>
 
-    <!-- Footer ท้ายหน้า -->
-    <footer class="footer">
-        <p>&copy; 2026 รถพุ่มพวงออนไลน์ (Rot Phum Phuang) - ระบบซื้อขายสินค้าสดผ่านเว็บ</p>
-    </footer>
-
-    <!-- ===================================================== -->
-    <!-- นำเข้า Firebase SDK (เวอร์ชัน 10.8.0 - Compat Mode) -->
-    <!-- ===================================================== -->
+    <!-- Firebase SDK (Compat v10) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
-    <!-- นำเข้าไฟล์ JavaScript หลักของระบบ -->
+    
+    <!-- ไฟล์ JS หลัก -->
     <script src="script.js"></script>
-
 </body>
 </html>
