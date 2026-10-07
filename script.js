@@ -643,6 +643,79 @@ function placeOrder(subtotal) {
 
     reader.readAsDataURL(slipFile);
 }
+function rejectPayment(orderId) {
+    let order = orders.find(o => o.id == orderId);
+    if (!order) return;
+
+    if (!confirm(`ต้องการปฏิเสธสลิปการโอนเงินของออเดอร์ #${orderId} ใช่หรือไม่?`)) return;
+
+    // คืนแต้มให้ลูกค้าถ้าออเดอร์นั้นมีการใช้แต้มส่วนลด
+    if (order.discount && order.discount > 0) {
+        let customer = users.find(u => u.id == order.customerId);
+        if (customer) {
+            customer.points = (customer.points || 0) + order.discount;
+            
+            // อัปเดต currentUser หากผู้ใช้ที่ล็อกอินอยู่คือลูกค้ารายนี้
+            if (currentUser && currentUser.id == customer.id) {
+                currentUser.points = customer.points;
+                localStorage.setItem("currentUser", JSON.stringify(currentUser));
+            }
+        }
+    }
+
+    // คืนสต็อกสินค้าเข้าคลัง
+    if (order.items && order.items.length > 0) {
+        order.items.forEach(item => {
+            let product = findProduct(item.productId);
+            if (product) {
+                product.quantity += item.quantity;
+            }
+        });
+    }
+
+    order.paymentStatus = "ชำระเงินไม่ถูกต้อง";
+    order.status = "ยกเลิกออเดอร์";
+
+    saveData();
+    renderNavbar();
+    alert(`ปฏิเสธการชำระเงินแล้ว (ระบบได้ทำการคืนแต้ม ${order.discount || 0} แต้ม และสต็อกสินค้าให้ลูกค้าเรียบร้อยแล้ว)`);
+    manageOrders();
+}
+function updateOrderStatus(orderId, newStatus) {
+    let order = orders.find(o => o.id == orderId);
+    if (!order) return;
+
+    // ถ้ายกเลิกออเดอร์ และก่อนหน้านี้ออเดอร์ยังไม่ได้ถูกยกเลิก ให้คืนแต้มและคืนสต็อก
+    if (newStatus === "ยกเลิกออเดอร์" && order.status !== "ยกเลิกออเดอร์") {
+        if (order.discount && order.discount > 0) {
+            let customer = users.find(u => u.id == order.customerId);
+            if (customer) {
+                customer.points = (customer.points || 0) + order.discount;
+                if (currentUser && currentUser.id == customer.id) {
+                    currentUser.points = customer.points;
+                    localStorage.setItem("currentUser", JSON.stringify(currentUser));
+                }
+            }
+        }
+
+        if (order.items && order.items.length > 0) {
+            order.items.forEach(item => {
+                let product = findProduct(item.productId);
+                if (product) {
+                    product.quantity += item.quantity;
+                }
+            });
+        }
+
+        order.paymentStatus = "ชำระเงินไม่ถูกต้อง";
+    }
+
+    order.status = newStatus;
+    saveData();
+    renderNavbar();
+    alert(`อัปเดตสถานะออเดอร์ #${orderId} เป็น "${newStatus}" เรียบร้อยแล้ว`);
+    manageOrders();
+}
 
 /* =====================================================
    10. ระบบสมาชิก (Register & Login)
