@@ -236,7 +236,7 @@ function showHome() {
                 </button>
             </div>
             <div class="hero-image">
-                <img src="hero-truck.jpg" alt="รถพุ่มพวง" onerror="this.style.display='none'">
+                <img src="rotphong.png" alt="รถพุ่มพวง">
             </div>
         </div>
 
@@ -721,11 +721,10 @@ function showRegister() {
                 <input id="registerPhone" placeholder="กรอกเบอร์โทรศัพท์" onkeyup="handleRegisterKey(event)">
             </div>
             <div class="form-group">
-                <label>ประเภทสมาชิก (ยศ)</label>
+                <label>ประเภทสมาชิก</label>
                 <select id="registerRole" onkeyup="handleRegisterKey(event)">
                     <option value="customer">👤 ลูกค้า</option>
                     <option value="seller">👨‍💼 ผู้ขาย (ต้องรอการอนุมัติ)</option>
-                    <option value="admin">👑 แอดมิน / เจ้าของระบบ</option>
                 </select>
             </div>
             <button class="btn" onclick="registerUser()">สมัครสมาชิก</button>
@@ -753,6 +752,11 @@ async function registerUser() {
 
     let existingUser = users.find(u => u.username.toLowerCase() === username.toLowerCase());
     if (existingUser) { alert("Username นี้ถูกใช้ไปแล้ว"); return; }
+
+    // ป้องกันการแอบส่ง role เป็น admin
+    if (role !== "customer" && role !== "seller") {
+        role = "customer";
+    }
 
     let isApproved = role === "seller" ? false : true;
 
@@ -1072,6 +1076,7 @@ function showSeller() {
     `;
 }
 
+// เรนเดอร์ส่วนจัดการอนุมัติ / ปฏิเสธสิทธิ์ผู้ขาย สำหรับแอดมิน
 function renderPendingSellersHTML() {
     let pendingSellers = users.filter(u => u.role === "seller" && u.approved === false);
     if (pendingSellers.length === 0) return '';
@@ -1086,7 +1091,7 @@ function renderPendingSellersHTML() {
                             <th>ชื่อ-นามสกุล</th>
                             <th>Username</th>
                             <th>เบอร์โทรศัพท์</th>
-                            <th>จัดการ</th>
+                            <th style="text-align: center;">จัดการ</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1098,9 +1103,12 @@ function renderPendingSellersHTML() {
                 <td><strong>${u.name}</strong></td>
                 <td>${u.username}</td>
                 <td>${u.phone}</td>
-                <td>
-                    <button class="btn btn-success" style="padding: 4px 10px; font-size: 0.85rem;" onclick="approveSeller('${u.id}')">
-                        ✅ อนุมัติสิทธิ์ผู้ขาย
+                <td style="text-align: center; display: flex; gap: 6px; justify-content: center;">
+                    <button class="btn btn-success" style="padding: 4px 10px; font-size: 0.85rem; width: auto;" onclick="approveSeller('${u.id}')">
+                        ✅ อนุมัติสิทธิ์
+                    </button>
+                    <button class="btn btn-danger" style="padding: 4px 10px; font-size: 0.85rem; width: auto;" onclick="rejectSeller('${u.id}')">
+                        ❌ ไม่อนุมัติ
                     </button>
                 </td>
             </tr>
@@ -1111,6 +1119,7 @@ function renderPendingSellersHTML() {
     return html;
 }
 
+// ฟังก์ชันอนุมัติสิทธิ์ผู้ขาย
 async function approveSeller(userId) {
     let user = users.find(u => String(u.id) === String(userId));
     if (!user) return;
@@ -1121,16 +1130,50 @@ async function approveSeller(userId) {
 
     try {
         if (db) {
-            await db.collection("users").doc(String(user.id)).update({
-                approved: true
-            });
+            let userQuery = await db.collection("users").where("id", "==", user.id).get();
+            if (!userQuery.empty) {
+                await db.collection("users").doc(userQuery.docs[0].id).update({ approved: true });
+            } else {
+                await db.collection("users").doc(String(user.id)).set(user, { merge: true });
+            }
         }
     } catch (e) {
         console.error(e);
     }
 
     saveData();
-    alert(`อนุมัติผู้ขายคุณ ${user.name} เรียบร้อยแล้ว!`);
+    alert(`อนุมัติสิทธิ์ผู้ขายให้คุณ ${user.name} เรียบร้อยแล้ว!`);
+    navigateTo('seller');
+}
+
+// ฟังก์ชันไม่อนุมัติ (ปฏิเสธสิทธิ์ผู้ขาย และปรับเป็นลูกค้าทั่วไป)
+async function rejectSeller(userId) {
+    let user = users.find(u => String(u.id) === String(userId));
+    if (!user) return;
+
+    if (!confirm(`ต้องการไม่อนุมัติสิทธิ์ผู้ขายให้คุณ "${user.name}" ใช่หรือไม่?\n(บัญชีนี้จะถูกปรับสิทธิ์เป็น "ลูกค้า" แทน)`)) return;
+
+    user.role = "customer";
+    user.approved = true;
+
+    try {
+        if (db) {
+            let userQuery = await db.collection("users").where("id", "==", user.id).get();
+            if (!userQuery.empty) {
+                await db.collection("users").doc(userQuery.docs[0].id).update({ 
+                    role: "customer",
+                    approved: true 
+                });
+            } else {
+                await db.collection("users").doc(String(user.id)).set(user, { merge: true });
+            }
+        }
+    } catch (e) {
+        console.error(e);
+    }
+
+    saveData();
+    alert(`ปฏิเสธสิทธิ์ผู้ขายของคุณ ${user.name} แล้ว (ปรับเปลี่ยนยศเป็นลูกค้าเรียบร้อยแล้ว)`);
     navigateTo('seller');
 }
 
@@ -1261,7 +1304,14 @@ async function saveEditTruck(truckId) {
     truck.location = location;
     truck.description = description;
 
-    if (db) { await db.collection("trucks").doc(String(truckId)).update(truck); }
+    if (db) {
+        let q = await db.collection("trucks").where("id", "==", truck.id).get();
+        if (!q.empty) {
+            await db.collection("trucks").doc(q.docs[0].id).update(truck);
+        } else {
+            await db.collection("trucks").doc(String(truckId)).set(truck, { merge: true });
+        }
+    }
 
     saveData();
     closeModal();
@@ -1272,7 +1322,14 @@ async function saveEditTruck(truckId) {
 async function deleteTruck(truckId) {
     if (!confirm("ต้องการลบรถคันนี้หรือไม่?")) return;
 
-    if (db) { await db.collection("trucks").doc(String(truckId)).delete(); }
+    if (db) {
+        let q = await db.collection("trucks").where("id", "==", truckId).get();
+        if (!q.empty) {
+            await db.collection("trucks").doc(q.docs[0].id).delete();
+        } else {
+            await db.collection("trucks").doc(String(truckId)).delete();
+        }
+    }
 
     trucks = trucks.filter(truck => String(truck.id) !== String(truckId));
     products = products.filter(product => String(product.truckId) !== String(truckId));
@@ -1359,11 +1416,16 @@ async function saveProduct() {
         if (unit) existingProduct.unit = unit;
 
         if (db) {
-            await db.collection("products").doc(String(existingProduct.id)).update({
-                quantity: existingProduct.quantity,
-                price: price,
-                unit: existingProduct.unit
-            });
+            let q = await db.collection("products").where("id", "==", existingProduct.id).get();
+            if (!q.empty) {
+                await db.collection("products").doc(q.docs[0].id).update({
+                    quantity: existingProduct.quantity,
+                    price: price,
+                    unit: existingProduct.unit
+                });
+            } else {
+                await db.collection("products").doc(String(existingProduct.id)).set(existingProduct, { merge: true });
+            }
         }
         alert(`พบสินค้า "${name}" ในรถคันนี้อยู่แล้ว ระบบได้ทำการบวกเพิ่มจำนวนสต็อกให้อัตโนมัติ`);
     } else {
@@ -1430,7 +1492,14 @@ async function saveEditProduct(productId) {
     product.quantity = quantity;
     product.unit = unit || "ชิ้น";
 
-    if (db) { await db.collection("products").doc(String(productId)).update(product); }
+    if (db) {
+        let q = await db.collection("products").where("id", "==", product.id).get();
+        if (!q.empty) {
+            await db.collection("products").doc(q.docs[0].id).update(product);
+        } else {
+            await db.collection("products").doc(String(productId)).set(product, { merge: true });
+        }
+    }
 
     saveData();
     closeModal();
@@ -1441,7 +1510,14 @@ async function saveEditProduct(productId) {
 async function deleteProduct(productId) {
     if (!confirm("คุณต้องการลบสินค้ารายการนี้ใช่หรือไม่?")) return;
 
-    if (db) { await db.collection("products").doc(String(productId)).delete(); }
+    if (db) {
+        let q = await db.collection("products").where("id", "==", productId).get();
+        if (!q.empty) {
+            await db.collection("products").doc(q.docs[0].id).delete();
+        } else {
+            await db.collection("products").doc(String(productId)).delete();
+        }
+    }
 
     products = products.filter(p => String(p.id) !== String(productId));
     cart = cart.filter(c => String(c.productId) !== String(productId));
@@ -1573,16 +1649,25 @@ async function confirmPayment(orderId) {
 
     try {
         if (db) {
-            await db.collection("orders").doc(String(order.id)).update({
-                paymentStatus: order.paymentStatus,
-                status: order.status,
-                receiptNumber: order.receiptNumber
-            });
+            let orderQuery = await db.collection("orders").where("id", "==", order.id).get();
+            if (!orderQuery.empty) {
+                let docId = orderQuery.docs[0].id;
+                await db.collection("orders").doc(docId).update({
+                    paymentStatus: order.paymentStatus,
+                    status: order.status,
+                    receiptNumber: order.receiptNumber
+                });
+            } else {
+                await db.collection("orders").doc(String(order.id)).set(order, { merge: true });
+            }
 
             if (customer) {
-                await db.collection("users").doc(String(customer.id)).update({
-                    points: customer.points
-                });
+                let userQuery = await db.collection("users").where("id", "==", customer.id).get();
+                if (!userQuery.empty) {
+                    await db.collection("users").doc(userQuery.docs[0].id).update({ points: customer.points });
+                } else {
+                    await db.collection("users").doc(String(customer.id)).set(customer, { merge: true });
+                }
             }
         }
     } catch (e) {
@@ -1609,7 +1694,12 @@ async function rejectPayment(orderId) {
                 currentUser.points = customer.points;
                 localStorage.setItem("currentUser", JSON.stringify(currentUser));
             }
-            if (db) { await db.collection("users").doc(String(customer.id)).update({ points: customer.points }); }
+            if (db) {
+                let userQuery = await db.collection("users").where("id", "==", customer.id).get();
+                if (!userQuery.empty) {
+                    await db.collection("users").doc(userQuery.docs[0].id).update({ points: customer.points });
+                }
+            }
         }
     }
 
@@ -1618,7 +1708,12 @@ async function rejectPayment(orderId) {
             let product = findProduct(item.productId);
             if (product) {
                 product.quantity += item.quantity;
-                if (db) { await db.collection("products").doc(String(product.id)).update({ quantity: product.quantity }); }
+                if (db) {
+                    let prodQuery = await db.collection("products").where("id", "==", product.id).get();
+                    if (!prodQuery.empty) {
+                        await db.collection("products").doc(prodQuery.docs[0].id).update({ quantity: product.quantity });
+                    }
+                }
             }
         });
     }
@@ -1628,10 +1723,15 @@ async function rejectPayment(orderId) {
 
     try {
         if (db) {
-            await db.collection("orders").doc(String(order.id)).update({
-                paymentStatus: order.paymentStatus,
-                status: order.status
-            });
+            let orderQuery = await db.collection("orders").where("id", "==", order.id).get();
+            if (!orderQuery.empty) {
+                await db.collection("orders").doc(orderQuery.docs[0].id).update({
+                    paymentStatus: order.paymentStatus,
+                    status: order.status
+                });
+            } else {
+                await db.collection("orders").doc(String(order.id)).set(order, { merge: true });
+            }
         }
     } catch (e) { console.error(e); }
 
@@ -1649,9 +1749,14 @@ async function updateOrderStatus(orderId, newStatus) {
 
     try {
         if (db) {
-            await db.collection("orders").doc(String(order.id)).update({
-                status: order.status
-            });
+            let orderQuery = await db.collection("orders").where("id", "==", order.id).get();
+            if (!orderQuery.empty) {
+                await db.collection("orders").doc(orderQuery.docs[0].id).update({
+                    status: order.status
+                });
+            } else {
+                await db.collection("orders").doc(String(order.id)).set(order, { merge: true });
+            }
         }
     } catch (e) { console.error(e); }
 
