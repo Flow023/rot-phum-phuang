@@ -242,7 +242,7 @@ function showHome() {
 
         <div class="card-container">
             <div class="card" onclick="navigateTo('trucks')" style="cursor: pointer;">
-                <h3>🚚 รถพุ่มพวง</h3>
+                <h3>พุ่มพวงเทคแคร์</h3>
                 <p>มีรถทั้งหมด <strong>${trucks.length}</strong> คัน</p>
             </div>
             <div class="card" onclick="navigateTo('trucks')" style="cursor: pointer;">
@@ -261,7 +261,7 @@ function showHome() {
 
         <div style="margin-top: 40px;">
             <div class="page-title" style="display: flex; justify-content: space-between; align-items: center;">
-                <h2>🚚 รถพุ่มพวงที่กำลังให้บริการ</h2>
+                <h2>🚚 รถที่กำลังให้บริการ</h2>
                 <button class="btn btn-blue" style="width: auto; padding: 6px 12px; font-size: 0.85rem;" onclick="navigateTo('trucks')">
                     ดูทั้งหมด →
                 </button>
