@@ -236,7 +236,7 @@ function showHome() {
                 </button>
             </div>
             <div class="hero-image">
-                <img src="rotphong.png" alt="รถพุ่มพวง">
+                <img src="hero-truck.png" alt="รถพุ่มพวง">
             </div>
         </div>
 
