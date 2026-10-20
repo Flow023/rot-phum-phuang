@@ -229,7 +229,7 @@ function showHome() {
     let html = `
         <div class="hero">
             <div class="hero-content">
-                <h1>🚚 รถพุ่มพวง</h1>
+                <h1>พุ่มพวงเทคแคร์</h1>
                 <p>ตลาดเคลื่อนที่ ซื้อของง่าย สั่งซื้อสินค้าได้จากรถพุ่มพวงใกล้บ้านคุณ</p>
                 <button class="btn btn-blue" style="max-width: 200px;" onclick="navigateTo('trucks')">
                     🚚 ดูรถพุ่มพวงทั้งหมด
